@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Pencil, Trash2, Loader2, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, ChevronDown, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -70,6 +70,10 @@ const optionSchema = z.object({
   defaultQty: z.coerce.number().min(1).default(1),
   isDefault: z.boolean().default(false),
   sortOrder: z.coerce.number().default(0),
+  tooltipEnabled: z.boolean().default(false),
+  tooltipText: z.string().optional(),
+  tooltipLink: z.string().optional(),
+  tooltipImage: z.string().optional(),
 });
 
 type GroupFormData = z.infer<typeof groupSchema>;
@@ -124,6 +128,10 @@ export default function AdminOptions() {
       defaultQty: 1,
       isDefault: false,
       sortOrder: 0,
+      tooltipEnabled: false,
+      tooltipText: "",
+      tooltipLink: "",
+      tooltipImage: "",
     },
   });
 
@@ -219,6 +227,10 @@ export default function AdminOptions() {
         defaultQty: option.defaultQty || 1,
         isDefault: option.isDefault || false,
         sortOrder: option.sortOrder || 0,
+        tooltipEnabled: option.tooltipEnabled || false,
+        tooltipText: option.tooltipText || "",
+        tooltipLink: option.tooltipLink || "",
+        tooltipImage: option.tooltipImage || "",
       });
     } else {
       setEditingOption(null);
@@ -232,6 +244,10 @@ export default function AdminOptions() {
         defaultQty: 1,
         isDefault: false,
         sortOrder: 0,
+        tooltipEnabled: false,
+        tooltipText: "",
+        tooltipLink: "",
+        tooltipImage: "",
       });
     }
     setIsOptionDialogOpen(true);
@@ -599,6 +615,78 @@ export default function AdminOptions() {
                   </FormItem>
                 )}
               />
+              <div className="rounded-lg border p-4 space-y-4">
+                <FormField
+                  control={optionForm.control}
+                  name="tooltipEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                        <FormLabel className="cursor-pointer mb-0">
+                          Rodyti patarimą (tooltip)
+                        </FormLabel>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {optionForm.watch("tooltipEnabled") && (
+                  <>
+                    <FormField
+                      control={optionForm.control}
+                      name="tooltipText"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Patarimo tekstas</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Įveskite paaiškinamąjį tekstą..."
+                              className="min-h-[80px]"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={optionForm.control}
+                      name="tooltipLink"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nuoroda (neprivaloma)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://example.com/daugiau-info"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={optionForm.control}
+                      name="tooltipImage"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Paveikslėlio URL (neprivaloma)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="https://example.com/image.jpg"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={closeOptionDialog}>
                   Atšaukti
