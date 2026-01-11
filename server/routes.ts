@@ -365,5 +365,69 @@ export async function registerRoutes(
     }
   });
 
+  // ========== CONTENT BLOCKS ==========
+  
+  // Public route - get active blocks
+  app.get("/api/content-blocks", async (req, res) => {
+    try {
+      const blocks = await storage.getActiveContentBlocks();
+      res.json(blocks);
+    } catch (error) {
+      console.error("Error fetching content blocks:", error);
+      res.status(500).json({ error: "Failed to fetch content blocks" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/content-blocks", isAuthenticated, async (req, res) => {
+    try {
+      const blocks = await storage.getContentBlocks();
+      res.json(blocks);
+    } catch (error) {
+      console.error("Error fetching content blocks:", error);
+      res.status(500).json({ error: "Failed to fetch content blocks" });
+    }
+  });
+
+  app.post("/api/admin/content-blocks", isAuthenticated, async (req, res) => {
+    try {
+      // Check if max blocks reached (10 blocks limit)
+      const existing = await storage.getContentBlocks();
+      if (existing.length >= 10) {
+        return res.status(400).json({ error: "Maximum 10 content blocks allowed" });
+      }
+      const block = await storage.createContentBlock(req.body);
+      res.status(201).json(block);
+    } catch (error) {
+      console.error("Error creating content block:", error);
+      res.status(500).json({ error: "Failed to create content block" });
+    }
+  });
+
+  app.patch("/api/admin/content-blocks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const block = await storage.updateContentBlock(id, req.body);
+      if (!block) {
+        return res.status(404).json({ error: "Content block not found" });
+      }
+      res.json(block);
+    } catch (error) {
+      console.error("Error updating content block:", error);
+      res.status(500).json({ error: "Failed to update content block" });
+    }
+  });
+
+  app.delete("/api/admin/content-blocks/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteContentBlock(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting content block:", error);
+      res.status(500).json({ error: "Failed to delete content block" });
+    }
+  });
+
   return httpServer;
 }
