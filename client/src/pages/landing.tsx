@@ -4,6 +4,7 @@ import { Header } from "@/components/landing/header";
 import { HeroSection } from "@/components/landing/hero-section";
 import { PlansSection } from "@/components/landing/plans-section";
 import { FeatureComparison } from "@/components/landing/feature-comparison";
+import { ContentBlocksSection } from "@/components/landing/content-blocks";
 import { Footer } from "@/components/landing/footer";
 import { LeadModal } from "@/components/landing/lead-modal";
 import type { Plan, OptionGroup, Option, FeatureGroup, Feature, PlanFeature, SiteContent } from "@shared/schema";
@@ -78,6 +79,8 @@ export default function LandingPage() {
           planFeatures={featuresData?.planFeatures || []}
           isLoading={isLoading}
         />
+        
+        <ContentBlocksSection />
       </main>
       
       <Footer content={getContent("footer")} contactContent={getContent("contact")} />

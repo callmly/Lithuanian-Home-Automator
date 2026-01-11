@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
 import { sendLeadEmails } from "./email";
-import { leadFormSchema, type SelectedOptionData } from "@shared/schema";
+import { leadFormSchema, insertContentBlockSchema, type SelectedOptionData } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -367,7 +367,7 @@ export async function registerRoutes(
 
   // ========== CONTENT BLOCKS ==========
   
-  // Public route - get active blocks
+  // Public route - get active blocks only
   app.get("/api/content-blocks", async (req, res) => {
     try {
       const blocks = await storage.getActiveContentBlocks();
@@ -391,12 +391,18 @@ export async function registerRoutes(
 
   app.post("/api/admin/content-blocks", isAuthenticated, async (req, res) => {
     try {
+      // Validate request body
+      const parsed = insertContentBlockSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      
       // Check if max blocks reached (10 blocks limit)
       const existing = await storage.getContentBlocks();
       if (existing.length >= 10) {
         return res.status(400).json({ error: "Maximum 10 content blocks allowed" });
       }
-      const block = await storage.createContentBlock(req.body);
+      const block = await storage.createContentBlock(parsed.data);
       res.status(201).json(block);
     } catch (error) {
       console.error("Error creating content block:", error);
@@ -407,7 +413,14 @@ export async function registerRoutes(
   app.patch("/api/admin/content-blocks/:id", isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const block = await storage.updateContentBlock(id, req.body);
+      
+      // Validate request body (partial schema for updates)
+      const parsed = insertContentBlockSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      
+      const block = await storage.updateContentBlock(id, parsed.data);
       if (!block) {
         return res.status(404).json({ error: "Content block not found" });
       }
