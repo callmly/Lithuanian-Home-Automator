@@ -62,7 +62,7 @@ export function PlansSection({
           </p>
         </div>
 
-        <div className="grid items-start gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-3">
           {sortedPlans.map((plan) => (
             <PlanCard
               key={plan.id}
@@ -173,7 +173,8 @@ function PlanCard({ plan, optionGroups, options, onGetQuote }: PlanCardProps) {
     <Card
       className={cn(
         "relative flex flex-col overflow-visible transition-all duration-300",
-        plan.isHighlighted && "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary"
+        plan.isHighlighted && "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary",
+        isExpanded && "self-start"
       )}
       data-testid={`card-plan-${plan.id}`}
     >
