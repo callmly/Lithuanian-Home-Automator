@@ -210,6 +210,7 @@ export type Lead = typeof leads.$inferSelect;
 // ============ CONTENT BLOCKS ============
 export const contentBlocks = pgTable("content_blocks", {
   id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }),
   titleLt: varchar("title_lt", { length: 150 }),
   contentLt: text("content_lt"),
   isHtml: boolean("is_html").default(false),
@@ -222,6 +223,20 @@ export const contentBlocks = pgTable("content_blocks", {
 export const insertContentBlockSchema = createInsertSchema(contentBlocks).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertContentBlock = z.infer<typeof insertContentBlockSchema>;
 export type ContentBlock = typeof contentBlocks.$inferSelect;
+
+// ============ MENU LINKS ============
+export const menuLinks = pgTable("menu_links", {
+  id: serial("id").primaryKey(),
+  labelLt: varchar("label_lt", { length: 100 }).notNull(),
+  targetType: varchar("target_type", { length: 20 }).notNull().default("section"),
+  targetValue: varchar("target_value", { length: 200 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const insertMenuLinkSchema = createInsertSchema(menuLinks).omit({ id: true });
+export type InsertMenuLink = z.infer<typeof insertMenuLinkSchema>;
+export type MenuLink = typeof menuLinks.$inferSelect;
 
 // ============ LEAD FORM VALIDATION ============
 export const leadFormSchema = z.object({

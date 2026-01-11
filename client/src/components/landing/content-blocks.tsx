@@ -10,8 +10,8 @@ export function ContentBlocksSection() {
   if (isLoading) {
     return (
       <section className="py-16 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="space-y-8 max-w-4xl mx-auto">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="space-y-8">
             {[1, 2].map((i) => (
               <div key={i} className="space-y-4">
                 <Skeleton className="h-8 w-64" />
@@ -29,11 +29,16 @@ export function ContentBlocksSection() {
   }
 
   return (
-    <section className="py-16 bg-muted/30" data-testid="section-content-blocks">
-      <div className="container mx-auto px-4">
-        <div className="space-y-12 max-w-4xl mx-auto">
-          {blocks.map((block) => (
-            <article key={block.id} className="space-y-4" data-testid={`content-block-${block.id}`}>
+    <>
+      {blocks.map((block) => (
+        <section 
+          key={block.id} 
+          id={block.slug || `block-${block.id}`}
+          className="py-16 bg-muted/30" 
+          data-testid={`content-block-${block.id}`}
+        >
+          <div className="container mx-auto px-4 lg:px-8">
+            <article className="space-y-4">
               {block.titleLt && (
                 <h2 className="text-2xl font-bold text-foreground">
                   {block.titleLt}
@@ -50,9 +55,9 @@ export function ContentBlocksSection() {
                 </div>
               )}
             </article>
-          ))}
-        </div>
-      </div>
-    </section>
+          </div>
+        </section>
+      ))}
+    </>
   );
 }

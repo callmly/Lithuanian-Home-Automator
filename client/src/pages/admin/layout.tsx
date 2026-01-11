@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Home,
   Blocks,
+  Menu,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ import AdminOptions from "./options";
 import AdminFeatures from "./features";
 import AdminContent from "./content";
 import AdminContentBlocks from "./content-blocks";
+import AdminMenuLinks from "./menu-links";
 import AdminLeads from "./leads";
 
 const menuItems = [
@@ -47,6 +49,7 @@ const menuItems = [
   { title: "Funkcijų lentelė", icon: Grid3x3, path: "/admin/features" },
   { title: "Svetainės turinys", icon: FileText, path: "/admin/content" },
   { title: "Turinio blokai", icon: Blocks, path: "/admin/content-blocks" },
+  { title: "Meniu nuorodos", icon: Menu, path: "/admin/menu-links" },
   { title: "Užklausos", icon: Users, path: "/admin/leads" },
 ];
 
@@ -174,6 +177,7 @@ export default function AdminLayout() {
               <Route path="/admin/features" component={AdminFeatures} />
               <Route path="/admin/content" component={AdminContent} />
               <Route path="/admin/content-blocks" component={AdminContentBlocks} />
+              <Route path="/admin/menu-links" component={AdminMenuLinks} />
               <Route path="/admin/leads" component={AdminLeads} />
             </Switch>
           </main>
@@ -192,6 +196,7 @@ function Breadcrumb({ location }: { location: string }) {
     features: "Funkcijų lentelė",
     content: "Svetainės turinys",
     "content-blocks": "Turinio blokai",
+    "menu-links": "Meniu nuorodos",
     leads: "Užklausos",
   };
 

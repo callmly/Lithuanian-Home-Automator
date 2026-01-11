@@ -11,6 +11,7 @@ import {
   siteContent,
   leads,
   contentBlocks,
+  menuLinks,
   type Plan,
   type InsertPlan,
   type OptionGroup,
@@ -31,6 +32,8 @@ import {
   type InsertLead,
   type ContentBlock,
   type InsertContentBlock,
+  type MenuLink,
+  type InsertMenuLink,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -93,6 +96,14 @@ export interface IStorage {
   createContentBlock(block: InsertContentBlock): Promise<ContentBlock>;
   updateContentBlock(id: number, block: Partial<InsertContentBlock>): Promise<ContentBlock | undefined>;
   deleteContentBlock(id: number): Promise<void>;
+
+  // Menu Links
+  getMenuLinks(): Promise<MenuLink[]>;
+  getActiveMenuLinks(): Promise<MenuLink[]>;
+  getMenuLink(id: number): Promise<MenuLink | undefined>;
+  createMenuLink(link: InsertMenuLink): Promise<MenuLink>;
+  updateMenuLink(id: number, link: Partial<InsertMenuLink>): Promise<MenuLink | undefined>;
+  deleteMenuLink(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -320,6 +331,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteContentBlock(id: number): Promise<void> {
     await db.delete(contentBlocks).where(eq(contentBlocks.id, id));
+  }
+
+  // Menu Links
+  async getMenuLinks(): Promise<MenuLink[]> {
+    return db.select().from(menuLinks).orderBy(menuLinks.sortOrder);
+  }
+
+  async getActiveMenuLinks(): Promise<MenuLink[]> {
+    return db
+      .select()
+      .from(menuLinks)
+      .where(eq(menuLinks.isActive, true))
+      .orderBy(menuLinks.sortOrder);
+  }
+
+  async getMenuLink(id: number): Promise<MenuLink | undefined> {
+    const [link] = await db.select().from(menuLinks).where(eq(menuLinks.id, id));
+    return link;
+  }
+
+  async createMenuLink(link: InsertMenuLink): Promise<MenuLink> {
+    const [newLink] = await db.insert(menuLinks).values(link).returning();
+    return newLink;
+  }
+
+  async updateMenuLink(id: number, link: Partial<InsertMenuLink>): Promise<MenuLink | undefined> {
+    const [updated] = await db
+      .update(menuLinks)
+      .set(link)
+      .where(eq(menuLinks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteMenuLink(id: number): Promise<void> {
+    await db.delete(menuLinks).where(eq(menuLinks.id, id));
   }
 }
 

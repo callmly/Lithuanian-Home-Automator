@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
 import { sendLeadEmails } from "./email";
-import { leadFormSchema, insertContentBlockSchema, type SelectedOptionData } from "@shared/schema";
+import { leadFormSchema, insertContentBlockSchema, insertMenuLinkSchema, type SelectedOptionData } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -439,6 +439,73 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting content block:", error);
       res.status(500).json({ error: "Failed to delete content block" });
+    }
+  });
+
+  // ========== MENU LINKS ==========
+  
+  // Public: get active menu links
+  app.get("/api/menu-links", async (req, res) => {
+    try {
+      const links = await storage.getActiveMenuLinks();
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching menu links:", error);
+      res.status(500).json({ error: "Failed to fetch menu links" });
+    }
+  });
+
+  // Admin: get all menu links
+  app.get("/api/admin/menu-links", isAuthenticated, async (req, res) => {
+    try {
+      const links = await storage.getMenuLinks();
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching menu links:", error);
+      res.status(500).json({ error: "Failed to fetch menu links" });
+    }
+  });
+
+  app.post("/api/admin/menu-links", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertMenuLinkSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const link = await storage.createMenuLink(parsed.data);
+      res.status(201).json(link);
+    } catch (error) {
+      console.error("Error creating menu link:", error);
+      res.status(500).json({ error: "Failed to create menu link" });
+    }
+  });
+
+  app.patch("/api/admin/menu-links/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = insertMenuLinkSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const link = await storage.updateMenuLink(id, parsed.data);
+      if (!link) {
+        return res.status(404).json({ error: "Menu link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error updating menu link:", error);
+      res.status(500).json({ error: "Failed to update menu link" });
+    }
+  });
+
+  app.delete("/api/admin/menu-links/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteMenuLink(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting menu link:", error);
+      res.status(500).json({ error: "Failed to delete menu link" });
     }
   });
 

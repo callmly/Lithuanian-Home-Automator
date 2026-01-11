@@ -42,6 +42,7 @@ import type { ContentBlock } from "@shared/schema";
 
 const blockSchema = z.object({
   titleLt: z.string().min(1, "Pavadinimas privalomas"),
+  slug: z.string().regex(/^[a-z0-9-]*$/, "Tik mažosios raidės, skaičiai ir brūkšneliai").optional().nullable(),
   contentLt: z.string().min(1, "Turinys privalomas"),
   isHtml: z.boolean().default(false),
   isActive: z.boolean().default(true),
@@ -66,6 +67,7 @@ export default function AdminContentBlocks() {
     resolver: zodResolver(blockSchema),
     defaultValues: {
       titleLt: "",
+      slug: "",
       contentLt: "",
       isHtml: false,
       isActive: true,
@@ -141,6 +143,7 @@ export default function AdminContentBlocks() {
     setEditingBlock(null);
     form.reset({
       titleLt: "",
+      slug: "",
       contentLt: "",
       isHtml: false,
       isActive: true,
@@ -153,6 +156,7 @@ export default function AdminContentBlocks() {
     setEditingBlock(block);
     form.reset({
       titleLt: block.titleLt ?? "",
+      slug: block.slug ?? "",
       contentLt: block.contentLt ?? "",
       isHtml: block.isHtml ?? false,
       isActive: block.isActive ?? true,
@@ -236,6 +240,7 @@ export default function AdminContentBlocks() {
                       )}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground">
+                      {block.slug && <span className="mr-2">#{block.slug}</span>}
                       Rūšiavimo eilė: {block.sortOrder ?? 0}
                     </p>
                   </div>
@@ -300,6 +305,28 @@ export default function AdminContentBlocks() {
                     <FormControl>
                       <Input {...field} placeholder="Bloko pavadinimas" data-testid="input-block-title" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nuorodos ID (slug)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        value={field.value ?? ""} 
+                        placeholder="pvz: apie-mus" 
+                        data-testid="input-block-slug" 
+                      />
+                    </FormControl>
+                    <FormDescription className="text-xs">
+                      Naudojama meniu nuorodose, pvz. #apie-mus
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
