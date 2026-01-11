@@ -50,6 +50,8 @@ Key database tables:
 - `options` / `option_groups` - Configurable add-ons and quantities
 - `features` / `feature_groups` / `plan_features` - Feature comparison matrix
 - `site_content` - CMS-style content blocks
+- `content_blocks` - Custom content sections with optional slug for anchor navigation
+- `menu_links` - Customizable header menu with section/URL targeting
 - `leads` - Lead capture form submissions
 - `users` / `sessions` - Authentication (Replit Auth)
 
