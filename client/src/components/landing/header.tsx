@@ -46,7 +46,7 @@ export function Header({ content }: HeaderProps) {
               <Button
                 key={link.id}
                 variant="ghost"
-                size="sm"
+                className="text-[14px]"
                 onClick={() => handleNavClick(link)}
                 data-testid={`menu-link-${link.id}`}
               >
