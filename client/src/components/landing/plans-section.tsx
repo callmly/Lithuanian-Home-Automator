@@ -26,10 +26,16 @@ export function PlansSection({
   isLoading,
   onGetQuote,
 }: PlansSectionProps) {
+  const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
+  
   const sortedPlans = useMemo(
     () => [...plans].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)),
     [plans]
   );
+
+  const toggleExpanded = (planId: number) => {
+    setExpandedPlanId((prev) => (prev === planId ? null : planId));
+  };
 
   if (isLoading) {
     return (
@@ -70,6 +76,8 @@ export function PlansSection({
               optionGroups={optionGroups}
               options={options}
               onGetQuote={onGetQuote}
+              isExpanded={expandedPlanId === plan.id}
+              onToggleExpand={() => toggleExpanded(plan.id)}
             />
           ))}
         </div>
@@ -83,10 +91,11 @@ interface PlanCardProps {
   optionGroups: OptionGroup[];
   options: Option[];
   onGetQuote: (plan: Plan, config: PlanConfig) => void;
+  isExpanded: boolean;
+  onToggleExpand: () => void;
 }
 
-function PlanCard({ plan, optionGroups, options, onGetQuote }: PlanCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function PlanCard({ plan, optionGroups, options, onGetQuote, isExpanded, onToggleExpand }: PlanCardProps) {
   const [selectedOptions, setSelectedOptions] = useState<Map<number, number>>(
     () => {
       const initial = new Map<number, number>();
@@ -215,7 +224,7 @@ function PlanCard({ plan, optionGroups, options, onGetQuote }: PlanCardProps) {
         <Button
           className="w-full gap-2 mt-auto"
           variant={plan.isHighlighted ? "default" : "outline"}
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={onToggleExpand}
           data-testid={`button-select-plan-${plan.id}`}
         >
           Pasirinkti
