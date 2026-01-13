@@ -555,7 +555,7 @@ export default function AdminPlans() {
                     {group.typeLt === "quantity"
                       ? "Kiekis"
                       : group.typeLt === "switch"
-                      ? "Jungiklis"
+                      ? "Pasirinkimas"
                       : "Priedas"}
                   </Badge>
                 </div>

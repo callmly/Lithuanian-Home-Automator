@@ -81,7 +81,7 @@ type OptionFormData = z.infer<typeof optionSchema>;
 
 const typeLabels: Record<string, string> = {
   quantity: "Kiekis",
-  switch: "Jungiklio tipas",
+  switch: "Pasirinkimas",
   addon: "Papildomos funkcijos",
 };
 
@@ -298,7 +298,7 @@ export default function AdminOptions() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Opcijos</h1>
           <p className="text-muted-foreground">
-            Valdykite kiekius, jungiklių tipus ir papildomas funkcijas
+            Valdykite kiekius, pasirinkimus ir papildomas funkcijas
           </p>
         </div>
         <Button onClick={() => openGroupDialog()} data-testid="button-add-group">
@@ -483,7 +483,7 @@ export default function AdminOptions() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="quantity">Kiekis</SelectItem>
-                        <SelectItem value="switch">Jungiklio tipas</SelectItem>
+                        <SelectItem value="switch">Pasirinkimas</SelectItem>
                         <SelectItem value="addon">Papildomos funkcijos</SelectItem>
                       </SelectContent>
                     </Select>
