@@ -5,6 +5,7 @@ import {
   optionGroups,
   options,
   planOptions,
+  planOptionGroups,
   featureGroups,
   features,
   planFeatures,
@@ -21,6 +22,8 @@ import {
   type InsertOption,
   type PlanOption,
   type InsertPlanOption,
+  type PlanOptionGroup,
+  type InsertPlanOptionGroup,
   type FeatureGroup,
   type InsertFeatureGroup,
   type Feature,
@@ -64,6 +67,11 @@ export interface IStorage {
   getPlanOptions(): Promise<PlanOption[]>;
   createPlanOption(planOption: InsertPlanOption): Promise<PlanOption>;
   deletePlanOption(id: number): Promise<void>;
+
+  // Plan Option Groups (which option groups are visible per plan)
+  getPlanOptionGroups(): Promise<PlanOptionGroup[]>;
+  getPlanOptionGroupsByPlan(planId: number): Promise<PlanOptionGroup[]>;
+  setPlanOptionGroups(planId: number, optionGroupIds: number[]): Promise<void>;
 
   // Feature Groups
   getFeatureGroups(): Promise<FeatureGroup[]>;
@@ -193,6 +201,24 @@ export class DatabaseStorage implements IStorage {
 
   async deletePlanOption(id: number): Promise<void> {
     await db.delete(planOptions).where(eq(planOptions.id, id));
+  }
+
+  // Plan Option Groups
+  async getPlanOptionGroups(): Promise<PlanOptionGroup[]> {
+    return db.select().from(planOptionGroups);
+  }
+
+  async getPlanOptionGroupsByPlan(planId: number): Promise<PlanOptionGroup[]> {
+    return db.select().from(planOptionGroups).where(eq(planOptionGroups.planId, planId));
+  }
+
+  async setPlanOptionGroups(planId: number, optionGroupIds: number[]): Promise<void> {
+    await db.delete(planOptionGroups).where(eq(planOptionGroups.planId, planId));
+    if (optionGroupIds.length > 0) {
+      await db.insert(planOptionGroups).values(
+        optionGroupIds.map((optionGroupId) => ({ planId, optionGroupId }))
+      );
+    }
   }
 
   // Feature Groups

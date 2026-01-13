@@ -32,7 +32,8 @@ export async function registerRoutes(
     try {
       const groups = await storage.getOptionGroups();
       const options = await storage.getOptions();
-      res.json({ groups, options });
+      const planOptionGroups = await storage.getPlanOptionGroups();
+      res.json({ groups, options, planOptionGroups });
     } catch (error) {
       console.error("Error fetching options:", error);
       res.status(500).json({ error: "Failed to fetch options" });
@@ -231,6 +232,30 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting option:", error);
       res.status(500).json({ error: "Failed to delete option" });
+    }
+  });
+
+  // Plan Option Groups (assign option groups to plans)
+  app.get("/api/admin/plan-option-groups/:planId", isAuthenticated, async (req, res) => {
+    try {
+      const planId = parseInt(req.params.planId);
+      const groups = await storage.getPlanOptionGroupsByPlan(planId);
+      res.json(groups);
+    } catch (error) {
+      console.error("Error fetching plan option groups:", error);
+      res.status(500).json({ error: "Failed to fetch plan option groups" });
+    }
+  });
+
+  app.put("/api/admin/plan-option-groups/:planId", isAuthenticated, async (req, res) => {
+    try {
+      const planId = parseInt(req.params.planId);
+      const { optionGroupIds } = req.body as { optionGroupIds: number[] };
+      await storage.setPlanOptionGroups(planId, optionGroupIds || []);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting plan option groups:", error);
+      res.status(500).json({ error: "Failed to set plan option groups" });
     }
   });
 

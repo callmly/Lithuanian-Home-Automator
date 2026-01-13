@@ -9,13 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatedSection, AnimatedItem } from "@/components/ui/animated-section";
 import { cn } from "@/lib/utils";
 import { InfoTooltip } from "./info-tooltip";
-import type { Plan, OptionGroup, Option } from "@shared/schema";
+import type { Plan, OptionGroup, Option, PlanOptionGroup } from "@shared/schema";
 import type { PlanConfig } from "@/pages/landing";
 
 interface PlansSectionProps {
   plans: Plan[];
   optionGroups: OptionGroup[];
   options: Option[];
+  planOptionGroups: PlanOptionGroup[];
   isLoading: boolean;
   onGetQuote: (plan: Plan, config: PlanConfig) => void;
 }
@@ -24,6 +25,7 @@ export function PlansSection({
   plans,
   optionGroups,
   options,
+  planOptionGroups,
   isLoading,
   onGetQuote,
 }: PlansSectionProps) {
@@ -76,6 +78,7 @@ export function PlansSection({
                 plan={plan}
                 optionGroups={optionGroups}
                 options={options}
+                planOptionGroups={planOptionGroups}
                 onGetQuote={onGetQuote}
                 isExpanded={expandedPlanId === plan.id}
                 onToggleExpand={() => toggleExpanded(plan.id)}
@@ -92,12 +95,13 @@ interface PlanCardProps {
   plan: Plan;
   optionGroups: OptionGroup[];
   options: Option[];
+  planOptionGroups: PlanOptionGroup[];
   onGetQuote: (plan: Plan, config: PlanConfig) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }
 
-function PlanCard({ plan, optionGroups, options, onGetQuote, isExpanded, onToggleExpand }: PlanCardProps) {
+function PlanCard({ plan, optionGroups, options, planOptionGroups, onGetQuote, isExpanded, onToggleExpand }: PlanCardProps) {
   const [selectedOptions, setSelectedOptions] = useState<Map<number, number>>(
     () => {
       const initial = new Map<number, number>();
@@ -110,9 +114,23 @@ function PlanCard({ plan, optionGroups, options, onGetQuote, isExpanded, onToggl
     }
   );
 
-  const quantityGroups = optionGroups.filter((g) => g.typeLt === "quantity");
-  const switchGroups = optionGroups.filter((g) => g.typeLt === "switch");
-  const addonGroups = optionGroups.filter((g) => g.typeLt === "addon");
+  const planSpecificGroupIds = useMemo(() => {
+    const ids = planOptionGroups
+      .filter((pog) => pog.planId === plan.id)
+      .map((pog) => pog.optionGroupId);
+    return ids;
+  }, [planOptionGroups, plan.id]);
+
+  const filteredOptionGroups = useMemo(() => {
+    if (planSpecificGroupIds.length === 0) {
+      return optionGroups;
+    }
+    return optionGroups.filter((g) => planSpecificGroupIds.includes(g.id));
+  }, [optionGroups, planSpecificGroupIds]);
+
+  const quantityGroups = filteredOptionGroups.filter((g) => g.typeLt === "quantity");
+  const switchGroups = filteredOptionGroups.filter((g) => g.typeLt === "switch");
+  const addonGroups = filteredOptionGroups.filter((g) => g.typeLt === "addon");
 
   const totalPrice = useMemo(() => {
     let total = plan.basePriceCents;

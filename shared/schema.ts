@@ -97,6 +97,28 @@ export const insertPlanOptionSchema = createInsertSchema(planOptions).omit({ id:
 export type InsertPlanOption = z.infer<typeof insertPlanOptionSchema>;
 export type PlanOption = typeof planOptions.$inferSelect;
 
+// Plan-specific option group visibility (which option groups to show per plan)
+export const planOptionGroups = pgTable("plan_option_groups", {
+  id: serial("id").primaryKey(),
+  planId: integer("plan_id").notNull().references(() => plans.id, { onDelete: "cascade" }),
+  optionGroupId: integer("option_group_id").notNull().references(() => optionGroups.id, { onDelete: "cascade" }),
+});
+
+export const planOptionGroupsRelations = relations(planOptionGroups, ({ one }) => ({
+  plan: one(plans, {
+    fields: [planOptionGroups.planId],
+    references: [plans.id],
+  }),
+  optionGroup: one(optionGroups, {
+    fields: [planOptionGroups.optionGroupId],
+    references: [optionGroups.id],
+  }),
+}));
+
+export const insertPlanOptionGroupSchema = createInsertSchema(planOptionGroups).omit({ id: true });
+export type InsertPlanOptionGroup = z.infer<typeof insertPlanOptionGroupSchema>;
+export type PlanOptionGroup = typeof planOptionGroups.$inferSelect;
+
 // ============ FEATURE COMPARISON ============
 export const featureGroups = pgTable("feature_groups", {
   id: serial("id").primaryKey(),

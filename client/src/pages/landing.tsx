@@ -9,7 +9,7 @@ import { Footer } from "@/components/landing/footer";
 import { LeadModal } from "@/components/landing/lead-modal";
 import { ScrollToTop } from "@/components/landing/scroll-to-top";
 import { SeoHead } from "@/components/seo-head";
-import type { Plan, OptionGroup, Option, FeatureGroup, Feature, PlanFeature, SiteContent } from "@shared/schema";
+import type { Plan, OptionGroup, Option, FeatureGroup, Feature, PlanFeature, SiteContent, PlanOptionGroup } from "@shared/schema";
 
 export type OptionWithGroup = Option & { group: OptionGroup };
 export type FeatureWithGroup = Feature & { group: FeatureGroup };
@@ -31,6 +31,7 @@ export default function LandingPage() {
   const { data: optionsData, isLoading: optionsLoading } = useQuery<{
     groups: OptionGroup[];
     options: Option[];
+    planOptionGroups: PlanOptionGroup[];
   }>({
     queryKey: ["/api/options"],
   });
@@ -71,6 +72,7 @@ export default function LandingPage() {
           plans={plans}
           optionGroups={optionsData?.groups || []}
           options={optionsData?.options || []}
+          planOptionGroups={optionsData?.planOptionGroups || []}
           isLoading={isLoading}
           onGetQuote={handleGetQuote}
         />
