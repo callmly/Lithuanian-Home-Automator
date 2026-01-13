@@ -1,7 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
-import type { ISourceOptions } from "@tsparticles/engine";
+import type { Container, ISourceOptions } from "@tsparticles/engine";
 
 interface ParticlesBackgroundProps {
   enabled?: boolean;
@@ -11,6 +11,8 @@ interface ParticlesBackgroundProps {
   opacity?: number;
 }
 
+let engineInitialized = false;
+
 export function ParticlesBackground({
   enabled = true,
   color = "#6366f1",
@@ -18,14 +20,24 @@ export function ParticlesBackground({
   speed = 0.5,
   opacity = 0.3,
 }: ParticlesBackgroundProps) {
-  const [init, setInit] = useState(false);
+  const [init, setInit] = useState(engineInitialized);
 
   useEffect(() => {
+    if (engineInitialized) {
+      setInit(true);
+      return;
+    }
+    
     initParticlesEngine(async (engine) => {
       await loadSlim(engine);
     }).then(() => {
+      engineInitialized = true;
       setInit(true);
     });
+  }, []);
+
+  const particlesLoaded = useCallback(async (container?: Container) => {
+    console.log("Particles loaded", container);
   }, []);
 
   const options: ISourceOptions = useMemo(
@@ -107,8 +119,9 @@ export function ParticlesBackground({
   return (
     <Particles
       id="tsparticles-hero"
+      particlesLoaded={particlesLoaded}
       options={options}
-      className="absolute inset-0 -z-10"
+      className="w-full h-full"
     />
   );
 }

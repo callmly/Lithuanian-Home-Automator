@@ -21,21 +21,23 @@ export function HeroSection({ content, particlesSettings }: HeroSectionProps) {
   const isParticlesEnabled = particlesSettings?.enabled ?? false;
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/20 py-20 lg:py-32">
-      <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+    <section className="relative bg-gradient-to-br from-primary/5 via-background to-accent/20 py-20 lg:py-32">
+      <div className="absolute inset-0 bg-grid-pattern opacity-5 z-0" />
       {isParticlesEnabled && (
         <Suspense fallback={null}>
-          <ParticlesBackground
-            enabled={true}
-            color={particlesSettings?.color ?? "#6366f1"}
-            quantity={particlesSettings?.quantity ?? 50}
-            speed={(particlesSettings?.speed ?? 50) / 100}
-            opacity={(particlesSettings?.opacity ?? 30) / 100}
-          />
+          <div className="absolute inset-0 z-0">
+            <ParticlesBackground
+              enabled={true}
+              color={particlesSettings?.color ?? "#6366f1"}
+              quantity={particlesSettings?.quantity ?? 50}
+              speed={(particlesSettings?.speed ?? 50) / 100}
+              opacity={(particlesSettings?.opacity ?? 30) / 100}
+            />
+          </div>
         </Suspense>
       )}
       
-      <div className="container relative mx-auto px-4 lg:px-8">
+      <div className="container relative z-10 mx-auto px-4 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <AnimatedSection>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-background/80 px-4 py-2 text-sm font-medium backdrop-blur">
