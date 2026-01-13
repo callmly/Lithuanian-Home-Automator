@@ -1,20 +1,39 @@
+import { lazy, Suspense } from "react";
 import { ArrowDown, Shield, Zap, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedSection, AnimatedItem } from "@/components/ui/animated-section";
-import type { SiteContent } from "@shared/schema";
+import type { SiteContent, ParticlesSettings } from "@shared/schema";
+
+const ParticlesBackground = lazy(() => 
+  import("./particles-background").then(m => ({ default: m.ParticlesBackground }))
+);
 
 interface HeroSectionProps {
   content?: SiteContent;
+  particlesSettings?: ParticlesSettings;
 }
 
-export function HeroSection({ content }: HeroSectionProps) {
+export function HeroSection({ content, particlesSettings }: HeroSectionProps) {
   const scrollToPlans = () => {
     document.getElementById("plans")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const isParticlesEnabled = particlesSettings?.enabled ?? false;
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/20 py-20 lg:py-32">
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+      {isParticlesEnabled && (
+        <Suspense fallback={null}>
+          <ParticlesBackground
+            enabled={true}
+            color={particlesSettings?.color ?? "#6366f1"}
+            quantity={particlesSettings?.quantity ?? 50}
+            speed={(particlesSettings?.speed ?? 50) / 100}
+            opacity={(particlesSettings?.opacity ?? 30) / 100}
+          />
+        </Suspense>
+      )}
       
       <div className="container relative mx-auto px-4 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">

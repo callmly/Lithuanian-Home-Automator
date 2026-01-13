@@ -43,6 +43,7 @@ import AdminContentBlocks from "./content-blocks";
 import AdminMenuLinks from "./menu-links";
 import AdminLeads from "./leads";
 import AdminSeo from "./seo";
+import AdminParticles from "./particles";
 
 const menuItems = [
   { title: "Valdymo pultas", icon: LayoutDashboard, path: "/admin" },
@@ -53,6 +54,7 @@ const menuItems = [
   { title: "Turinio blokai", icon: Blocks, path: "/admin/content-blocks" },
   { title: "Meniu nuorodos", icon: Menu, path: "/admin/menu-links" },
   { title: "SEO nustatymai", icon: Search, path: "/admin/seo" },
+  { title: "Dalelės", icon: Grid3x3, path: "/admin/particles" },
   { title: "Užklausos", icon: Users, path: "/admin/leads" },
 ];
 
@@ -182,6 +184,7 @@ export default function AdminLayout() {
               <Route path="/admin/content-blocks" component={AdminContentBlocks} />
               <Route path="/admin/menu-links" component={AdminMenuLinks} />
               <Route path="/admin/seo" component={AdminSeo} />
+              <Route path="/admin/particles" component={AdminParticles} />
               <Route path="/admin/leads" component={AdminLeads} />
             </Switch>
           </main>
@@ -202,6 +205,7 @@ function Breadcrumb({ location }: { location: string }) {
     "content-blocks": "Turinio blokai",
     "menu-links": "Meniu nuorodos",
     seo: "SEO nustatymai",
+    particles: "Dalelės",
     leads: "Užklausos",
   };
 

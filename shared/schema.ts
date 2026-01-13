@@ -295,3 +295,18 @@ export const seoSettings = pgTable("seo_settings", {
 export const insertSeoSettingsSchema = createInsertSchema(seoSettings).omit({ id: true, updatedAt: true });
 export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;
 export type SeoSettings = typeof seoSettings.$inferSelect;
+
+// ============ PARTICLES SETTINGS ============
+export const particlesSettings = pgTable("particles_settings", {
+  id: serial("id").primaryKey(),
+  enabled: boolean("enabled").default(false),
+  color: varchar("color", { length: 20 }).default("#6366f1"),
+  quantity: integer("quantity").default(50),
+  speed: integer("speed").default(50),
+  opacity: integer("opacity").default(30),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertParticlesSettingsSchema = createInsertSchema(particlesSettings).omit({ id: true, updatedAt: true });
+export type InsertParticlesSettings = z.infer<typeof insertParticlesSettingsSchema>;
+export type ParticlesSettings = typeof particlesSettings.$inferSelect;

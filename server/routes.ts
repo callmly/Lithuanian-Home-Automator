@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
 import { sendLeadEmails } from "./email";
-import { leadFormSchema, insertContentBlockSchema, insertMenuLinkSchema, insertSeoSettingsSchema, type SelectedOptionData } from "@shared/schema";
+import { leadFormSchema, insertContentBlockSchema, insertMenuLinkSchema, insertSeoSettingsSchema, insertParticlesSettingsSchema, type SelectedOptionData } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -570,6 +570,34 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating SEO settings:", error);
       res.status(500).json({ error: "Failed to update SEO settings" });
+    }
+  });
+
+  // ========== PARTICLES SETTINGS ==========
+
+  // Public: get particles settings
+  app.get("/api/particles-settings", async (req, res) => {
+    try {
+      const settings = await storage.getParticlesSettings();
+      res.json(settings || { enabled: false, color: "#6366f1", quantity: 50, speed: 50, opacity: 30 });
+    } catch (error) {
+      console.error("Error fetching particles settings:", error);
+      res.status(500).json({ error: "Failed to fetch particles settings" });
+    }
+  });
+
+  // Admin: update particles settings
+  app.put("/api/admin/particles-settings", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertParticlesSettingsSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const settings = await storage.upsertParticlesSettings(parsed.data);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating particles settings:", error);
+      res.status(500).json({ error: "Failed to update particles settings" });
     }
   });
 

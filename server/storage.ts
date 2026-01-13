@@ -14,6 +14,7 @@ import {
   contentBlocks,
   menuLinks,
   seoSettings,
+  particlesSettings,
   type Plan,
   type InsertPlan,
   type OptionGroup,
@@ -40,6 +41,8 @@ import {
   type InsertMenuLink,
   type SeoSettings,
   type InsertSeoSettings,
+  type ParticlesSettings,
+  type InsertParticlesSettings,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -119,6 +122,10 @@ export interface IStorage {
   // SEO Settings
   getSeoSettings(): Promise<SeoSettings | undefined>;
   upsertSeoSettings(settings: InsertSeoSettings): Promise<SeoSettings>;
+
+  // Particles Settings
+  getParticlesSettings(): Promise<ParticlesSettings | undefined>;
+  upsertParticlesSettings(settings: InsertParticlesSettings): Promise<ParticlesSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -421,6 +428,28 @@ export class DatabaseStorage implements IStorage {
     }
 
     const [newSettings] = await db.insert(seoSettings).values(settings).returning();
+    return newSettings;
+  }
+
+  // Particles Settings
+  async getParticlesSettings(): Promise<ParticlesSettings | undefined> {
+    const [settings] = await db.select().from(particlesSettings).limit(1);
+    return settings;
+  }
+
+  async upsertParticlesSettings(settings: InsertParticlesSettings): Promise<ParticlesSettings> {
+    const existing = await this.getParticlesSettings();
+
+    if (existing) {
+      const [updated] = await db
+        .update(particlesSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(particlesSettings.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [newSettings] = await db.insert(particlesSettings).values(settings).returning();
     return newSettings;
   }
 }
