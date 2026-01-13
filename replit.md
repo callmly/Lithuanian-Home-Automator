@@ -48,6 +48,7 @@ The backend structure:
 Key database tables:
 - `plans` - Pricing plan definitions
 - `options` / `option_groups` - Configurable add-ons and quantities
+- `plan_option_groups` - Junction table linking specific option groups to plans (plan-specific pricing options)
 - `features` / `feature_groups` / `plan_features` - Feature comparison matrix
 - `site_content` - CMS-style content blocks
 - `content_blocks` - Custom content sections with optional slug for anchor navigation
