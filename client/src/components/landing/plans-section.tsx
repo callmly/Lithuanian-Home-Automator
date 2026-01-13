@@ -69,12 +69,9 @@ export function PlansSection({
           </p>
         </AnimatedSection>
 
-        <div className={cn(
-          "grid gap-8 md:grid-cols-3",
-          expandedPlanId !== null ? "items-start" : "items-stretch"
-        )}>
+        <div className="grid gap-8 md:grid-cols-3 items-stretch">
           {sortedPlans.map((plan, index) => (
-            <AnimatedItem key={plan.id} delay={index * 80}>
+            <AnimatedItem key={plan.id} delay={index * 80} className="h-full">
               <PlanCard
                 plan={plan}
                 optionGroups={optionGroups}
@@ -186,9 +183,8 @@ function PlanCard({ plan, optionGroups, options, onGetQuote, isExpanded, onToggl
   return (
     <Card
       className={cn(
-        "relative flex flex-col overflow-visible transition-all duration-300",
-        plan.isHighlighted && "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary",
-        isExpanded && "self-start"
+        "relative flex flex-col overflow-visible transition-all duration-300 h-full",
+        plan.isHighlighted && "border-primary shadow-lg shadow-primary/10 ring-1 ring-primary"
       )}
       data-testid={`card-plan-${plan.id}`}
     >
