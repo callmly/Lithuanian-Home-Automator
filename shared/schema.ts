@@ -310,3 +310,33 @@ export const particlesSettings = pgTable("particles_settings", {
 export const insertParticlesSettingsSchema = createInsertSchema(particlesSettings).omit({ id: true, updatedAt: true });
 export type InsertParticlesSettings = z.infer<typeof insertParticlesSettingsSchema>;
 export type ParticlesSettings = typeof particlesSettings.$inferSelect;
+
+// ============ FOOTER LINKS ============
+export const footerLinks = pgTable("footer_links", {
+  id: serial("id").primaryKey(),
+  labelLt: varchar("label_lt", { length: 100 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  openInNewTab: boolean("open_in_new_tab").default(false),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const insertFooterLinkSchema = createInsertSchema(footerLinks).omit({ id: true });
+export type InsertFooterLink = z.infer<typeof insertFooterLinkSchema>;
+export type FooterLink = typeof footerLinks.$inferSelect;
+
+// ============ CUSTOM PAGES ============
+export const customPages = pgTable("custom_pages", {
+  id: serial("id").primaryKey(),
+  titleLt: varchar("title_lt", { length: 200 }).notNull(),
+  slug: varchar("slug", { length: 200 }).notNull().unique(),
+  contentLt: text("content_lt"),
+  isHtml: boolean("is_html").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertCustomPageSchema = createInsertSchema(customPages).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertCustomPage = z.infer<typeof insertCustomPageSchema>;
+export type CustomPage = typeof customPages.$inferSelect;

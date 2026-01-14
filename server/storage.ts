@@ -15,6 +15,8 @@ import {
   menuLinks,
   seoSettings,
   particlesSettings,
+  footerLinks,
+  customPages,
   type Plan,
   type InsertPlan,
   type OptionGroup,
@@ -43,6 +45,10 @@ import {
   type InsertSeoSettings,
   type ParticlesSettings,
   type InsertParticlesSettings,
+  type FooterLink,
+  type InsertFooterLink,
+  type CustomPage,
+  type InsertCustomPage,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -126,6 +132,23 @@ export interface IStorage {
   // Particles Settings
   getParticlesSettings(): Promise<ParticlesSettings | undefined>;
   upsertParticlesSettings(settings: InsertParticlesSettings): Promise<ParticlesSettings>;
+
+  // Footer Links
+  getFooterLinks(): Promise<FooterLink[]>;
+  getActiveFooterLinks(): Promise<FooterLink[]>;
+  getFooterLink(id: number): Promise<FooterLink | undefined>;
+  createFooterLink(link: InsertFooterLink): Promise<FooterLink>;
+  updateFooterLink(id: number, link: Partial<InsertFooterLink>): Promise<FooterLink | undefined>;
+  deleteFooterLink(id: number): Promise<void>;
+
+  // Custom Pages
+  getCustomPages(): Promise<CustomPage[]>;
+  getActiveCustomPages(): Promise<CustomPage[]>;
+  getCustomPage(id: number): Promise<CustomPage | undefined>;
+  getCustomPageBySlug(slug: string): Promise<CustomPage | undefined>;
+  createCustomPage(page: InsertCustomPage): Promise<CustomPage>;
+  updateCustomPage(id: number, page: Partial<InsertCustomPage>): Promise<CustomPage | undefined>;
+  deleteCustomPage(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -451,6 +474,86 @@ export class DatabaseStorage implements IStorage {
 
     const [newSettings] = await db.insert(particlesSettings).values(settings).returning();
     return newSettings;
+  }
+
+  // Footer Links
+  async getFooterLinks(): Promise<FooterLink[]> {
+    return db.select().from(footerLinks).orderBy(footerLinks.sortOrder);
+  }
+
+  async getActiveFooterLinks(): Promise<FooterLink[]> {
+    return db
+      .select()
+      .from(footerLinks)
+      .where(eq(footerLinks.isActive, true))
+      .orderBy(footerLinks.sortOrder);
+  }
+
+  async getFooterLink(id: number): Promise<FooterLink | undefined> {
+    const [link] = await db.select().from(footerLinks).where(eq(footerLinks.id, id));
+    return link;
+  }
+
+  async createFooterLink(link: InsertFooterLink): Promise<FooterLink> {
+    const [newLink] = await db.insert(footerLinks).values(link).returning();
+    return newLink;
+  }
+
+  async updateFooterLink(id: number, link: Partial<InsertFooterLink>): Promise<FooterLink | undefined> {
+    const [updated] = await db
+      .update(footerLinks)
+      .set(link)
+      .where(eq(footerLinks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteFooterLink(id: number): Promise<void> {
+    await db.delete(footerLinks).where(eq(footerLinks.id, id));
+  }
+
+  // Custom Pages
+  async getCustomPages(): Promise<CustomPage[]> {
+    return db.select().from(customPages).orderBy(customPages.titleLt);
+  }
+
+  async getActiveCustomPages(): Promise<CustomPage[]> {
+    return db
+      .select()
+      .from(customPages)
+      .where(eq(customPages.isActive, true))
+      .orderBy(customPages.titleLt);
+  }
+
+  async getCustomPage(id: number): Promise<CustomPage | undefined> {
+    const [page] = await db.select().from(customPages).where(eq(customPages.id, id));
+    return page;
+  }
+
+  async getCustomPageBySlug(slug: string): Promise<CustomPage | undefined> {
+    const [page] = await db
+      .select()
+      .from(customPages)
+      .where(and(eq(customPages.slug, slug), eq(customPages.isActive, true)));
+    return page;
+  }
+
+  async createCustomPage(page: InsertCustomPage): Promise<CustomPage> {
+    const [newPage] = await db.insert(customPages).values(page).returning();
+    return newPage;
+  }
+
+  async updateCustomPage(id: number, page: Partial<InsertCustomPage>): Promise<CustomPage | undefined> {
+    const [updated] = await db
+      .update(customPages)
+      .set({ ...page, updatedAt: new Date() })
+      .where(eq(customPages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteCustomPage(id: number): Promise<void> {
+    await db.delete(customPages).where(eq(customPages.id, id));
   }
 }
 
