@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { SeoSettings } from "@shared/schema";
+import { getAnalyticsConsent } from "./cookie-consent";
 
 export function SeoHead() {
   const { data: seoSettings } = useQuery<SeoSettings>({
@@ -9,6 +10,18 @@ export function SeoHead() {
   });
 
   const injectedScriptsRef = useRef<Set<string>>(new Set());
+  const [hasAnalyticsConsent, setHasAnalyticsConsent] = useState(getAnalyticsConsent());
+
+  const handleConsentUpdate = useCallback(() => {
+    setHasAnalyticsConsent(getAnalyticsConsent());
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("consentUpdated", handleConsentUpdate);
+    return () => {
+      window.removeEventListener("consentUpdated", handleConsentUpdate);
+    };
+  }, [handleConsentUpdate]);
 
   useEffect(() => {
     if (!seoSettings) return;
@@ -28,17 +41,19 @@ export function SeoHead() {
     updateOrRemoveMetaTag("twitter:description", seoSettings.ogDescription || seoSettings.metaDescription, "name");
     updateOrRemoveMetaTag("twitter:image", seoSettings.ogImage, "name");
 
-    if (seoSettings.googleAnalyticsId && !seoSettings.googleAnalyticsScript) {
-      if (!injectedScriptsRef.current.has("ga")) {
-        injectGoogleAnalytics(seoSettings.googleAnalyticsId);
-        injectedScriptsRef.current.add("ga");
+    if (hasAnalyticsConsent) {
+      if (seoSettings.googleAnalyticsId && !seoSettings.googleAnalyticsScript) {
+        if (!injectedScriptsRef.current.has("ga")) {
+          injectGoogleAnalytics(seoSettings.googleAnalyticsId);
+          injectedScriptsRef.current.add("ga");
+        }
       }
-    }
 
-    if (seoSettings.googleAnalyticsScript) {
-      if (!injectedScriptsRef.current.has("ga-custom")) {
-        injectCustomScript("ga-custom", seoSettings.googleAnalyticsScript);
-        injectedScriptsRef.current.add("ga-custom");
+      if (seoSettings.googleAnalyticsScript) {
+        if (!injectedScriptsRef.current.has("ga-custom")) {
+          injectCustomScript("ga-custom", seoSettings.googleAnalyticsScript);
+          injectedScriptsRef.current.add("ga-custom");
+        }
       }
     }
 
@@ -48,7 +63,7 @@ export function SeoHead() {
         injectedScriptsRef.current.add("custom-head");
       }
     }
-  }, [seoSettings]);
+  }, [seoSettings, hasAnalyticsConsent]);
 
   return null;
 }
