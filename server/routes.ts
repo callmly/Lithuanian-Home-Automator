@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, registerAuthRoutes } from "./replit_integrations/auth";
 import { sendLeadEmails } from "./email";
-import { leadFormSchema, insertContentBlockSchema, insertMenuLinkSchema, insertSeoSettingsSchema, insertParticlesSettingsSchema, type SelectedOptionData } from "@shared/schema";
+import { leadFormSchema, insertContentBlockSchema, insertMenuLinkSchema, insertSeoSettingsSchema, insertParticlesSettingsSchema, insertFooterLinkSchema, insertCustomPageSchema, type SelectedOptionData } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(
@@ -598,6 +598,143 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error updating particles settings:", error);
       res.status(500).json({ error: "Failed to update particles settings" });
+    }
+  });
+
+  // ========== FOOTER LINKS ==========
+
+  // Public: get active footer links
+  app.get("/api/footer-links", async (req, res) => {
+    try {
+      const links = await storage.getActiveFooterLinks();
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching footer links:", error);
+      res.status(500).json({ error: "Failed to fetch footer links" });
+    }
+  });
+
+  // Admin: get all footer links
+  app.get("/api/admin/footer-links", isAuthenticated, async (req, res) => {
+    try {
+      const links = await storage.getFooterLinks();
+      res.json(links);
+    } catch (error) {
+      console.error("Error fetching footer links:", error);
+      res.status(500).json({ error: "Failed to fetch footer links" });
+    }
+  });
+
+  app.post("/api/admin/footer-links", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertFooterLinkSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const link = await storage.createFooterLink(parsed.data);
+      res.status(201).json(link);
+    } catch (error) {
+      console.error("Error creating footer link:", error);
+      res.status(500).json({ error: "Failed to create footer link" });
+    }
+  });
+
+  app.patch("/api/admin/footer-links/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = insertFooterLinkSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const link = await storage.updateFooterLink(id, parsed.data);
+      if (!link) {
+        return res.status(404).json({ error: "Footer link not found" });
+      }
+      res.json(link);
+    } catch (error) {
+      console.error("Error updating footer link:", error);
+      res.status(500).json({ error: "Failed to update footer link" });
+    }
+  });
+
+  app.delete("/api/admin/footer-links/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteFooterLink(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting footer link:", error);
+      res.status(500).json({ error: "Failed to delete footer link" });
+    }
+  });
+
+  // ========== CUSTOM PAGES ==========
+
+  // Public: get custom page by slug
+  app.get("/api/pages/:slug", async (req, res) => {
+    try {
+      const page = await storage.getCustomPageBySlug(req.params.slug);
+      if (!page) {
+        return res.status(404).json({ error: "Page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error fetching page:", error);
+      res.status(500).json({ error: "Failed to fetch page" });
+    }
+  });
+
+  // Admin: get all custom pages
+  app.get("/api/admin/pages", isAuthenticated, async (req, res) => {
+    try {
+      const pages = await storage.getCustomPages();
+      res.json(pages);
+    } catch (error) {
+      console.error("Error fetching pages:", error);
+      res.status(500).json({ error: "Failed to fetch pages" });
+    }
+  });
+
+  app.post("/api/admin/pages", isAuthenticated, async (req, res) => {
+    try {
+      const parsed = insertCustomPageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const page = await storage.createCustomPage(parsed.data);
+      res.status(201).json(page);
+    } catch (error) {
+      console.error("Error creating page:", error);
+      res.status(500).json({ error: "Failed to create page" });
+    }
+  });
+
+  app.patch("/api/admin/pages/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = insertCustomPageSchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid data", details: parsed.error.errors });
+      }
+      const page = await storage.updateCustomPage(id, parsed.data);
+      if (!page) {
+        return res.status(404).json({ error: "Page not found" });
+      }
+      res.json(page);
+    } catch (error) {
+      console.error("Error updating page:", error);
+      res.status(500).json({ error: "Failed to update page" });
+    }
+  });
+
+  app.delete("/api/admin/pages/:id", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCustomPage(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting page:", error);
+      res.status(500).json({ error: "Failed to delete page" });
     }
   });
 
