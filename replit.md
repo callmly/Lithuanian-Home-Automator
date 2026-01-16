@@ -89,3 +89,17 @@ The `/shared/` directory contains code used by both frontend and backend:
 - `SESSION_SECRET` - Express session secret
 - `REPL_ID` - Replit environment identifier (auto-set by Replit)
 - Resend credentials via Replit Connectors
+
+## Recent Changes
+
+### Footer Menu & Custom Pages System (January 2026)
+- Added `footerLinks` table for admin-manageable footer navigation
+- Added `customPages` table for creating pages like Privacy Policy, Terms
+- Admin pages: `/admin/footer-links` and `/admin/pages`
+- Dynamic page routing: `/:slug` displays custom pages
+- Footer component now fetches links from database
+
+### Deployment Configuration
+- Added `Dockerfile` for container deployment
+- Added `DEPLOYMENT.md` with instructions for Hostinger VPS + Coolify
+- Target domain: namosistemos.lt
