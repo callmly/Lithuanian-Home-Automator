@@ -49,12 +49,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD curl -f http://localhost:5000/ || exit 1
 
 CMD ["node", "dist/index.cjs"]
-```
 
-## Coolify Environment Variables:
-
-Nepamirsk nustatyti **Is Build Variable** ✅:
-```
-RESEND_API_KEY=re_xxxxx (✅ Is Build Variable)
-SESSION_SECRET=tavo-sugeneruotas-secret-32-chars (✅ Is Build Variable)
-DATABASE_URL=postgresql://user:pass@host:5432/db (✅ Is Build Variable)
