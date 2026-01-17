@@ -1,8 +1,5 @@
+# Build stage
 FROM node:20-alpine AS builder
-
-ARG RESEND_API_KEY
-ARG SESSION_SECRET
-ARG DATABASE_URL
 
 WORKDIR /app
 
@@ -12,55 +9,43 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (dev + production)
+# Install all dependencies (including dev dependencies for build)
 RUN npm ci
 
 # Copy source code
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV RESEND_API_KEY=${RESEND_API_KEY}
-ENV SESSION_SECRET=${SESSION_SECRET}
-ENV DATABASE_URL=${DATABASE_URL}
-
-# Build using the local tsx from node_modules
+# Build the application
 RUN npm run build
-
-# Verify build output
-RUN ls -la dist/
 
 # Production stage
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-ARG RESEND_API_KEY
-ARG SESSION_SECRET
-ARG DATABASE_URL
-
-# Install curl for health checks
+# Install curl for healthcheck
 RUN apk add --no-cache curl
 
 ENV NODE_ENV=production
-ENV RESEND_API_KEY=${RESEND_API_KEY}
-ENV SESSION_SECRET=${SESSION_SECRET}
-ENV DATABASE_URL=${DATABASE_URL}
+ENV PORT=5000
 
-# Copy package files
-COPY package*.json ./
-
-# Install ONLY production dependencies
-RUN npm ci --omit=dev
-
-# Copy built files from builder
+# Copy built application
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
 
+# Install only production dependencies
+RUN npm ci --only=production
+
+# Copy drizzle config for migrations
+COPY --from=builder /app/drizzle.config.ts ./
+COPY --from=builder /app/shared ./shared
+
+# Expose port
 EXPOSE 5000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD curl -f http://localhost:5000/ || exit 1
 
-# Start application
-CMD ["node", "dist/index.cjs"]
+# Start command
+CMD ["node", "dist/index.js"]
