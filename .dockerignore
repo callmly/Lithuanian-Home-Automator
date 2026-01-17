@@ -1,12 +1,34 @@
+# Dependencies
 node_modules
+
+# Build output (will be created during build)
 dist
+
+# Git
 .git
 .gitignore
+
+# Documentation
 *.md
+!package.json
+
+# Environment files (use Coolify env vars instead)
 .env
 .env.*
+.env.local
+
+# Replit specific
 .replit
 replit.nix
 .upm
 .config
+.cache
+
+# Development files
 attached_assets
+scripts
+*.log
+
+# IDE
+.vscode
+.idea

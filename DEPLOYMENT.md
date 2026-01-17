@@ -1,275 +1,241 @@
-# Deployment Guide for namosistemos.lt
+# Deployment Guide: namosistemos.lt on Hostinger VPS with Coolify
 
-This guide covers deploying the KNX Smart Home application to Hostinger VPS using Coolify.
+## Quick Start Checklist
 
-## Prerequisites
-
-- Hostinger VPS with root access
-- Domain: namosistemos.lt pointed to your VPS IP
-- Coolify installed on your VPS
+- [ ] VPS with Coolify installed
+- [ ] Domain namosistemos.lt pointing to VPS IP
+- [ ] PostgreSQL database (external or on VPS)
+- [ ] Resend account for emails (optional)
 
 ---
 
-## 1. Environment Variables Required
+## Step 1: Prepare Database
 
-Create these environment variables in Coolify:
+### Option A: Use Neon.tech (Recommended - Free)
+1. Go to https://neon.tech
+2. Create account and new project
+3. Copy the connection string:
+   ```
+   postgresql://username:password@ep-xxx.region.aws.neon.tech/neondb?sslmode=require
+   ```
+
+### Option B: Use Supabase (Free)
+1. Go to https://supabase.com
+2. Create new project
+3. Go to Settings → Database → Connection string
+4. Copy the URI (use "Session mode" for connection pooling)
+
+### Option C: PostgreSQL on VPS
+```bash
+# SSH into VPS
+ssh root@YOUR_VPS_IP
+
+# Install PostgreSQL
+apt update && apt install -y postgresql postgresql-contrib
+
+# Create database
+sudo -u postgres psql -c "CREATE USER knxhome WITH PASSWORD 'STRONG_PASSWORD_HERE';"
+sudo -u postgres psql -c "CREATE DATABASE knxhome OWNER knxhome;"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE knxhome TO knxhome;"
+
+# Connection string will be:
+# postgresql://knxhome:STRONG_PASSWORD_HERE@localhost:5432/knxhome
+```
+
+---
+
+## Step 2: Configure DNS
+
+In Hostinger DNS settings for namosistemos.lt:
+
+| Type  | Name | Value           | TTL  |
+|-------|------|-----------------|------|
+| A     | @    | YOUR_VPS_IP     | 3600 |
+| A     | www  | YOUR_VPS_IP     | 3600 |
+
+Wait 5-30 minutes for DNS propagation. Check at https://dnschecker.org
+
+---
+
+## Step 3: Coolify Setup
+
+### 3.1 Create New Project
+1. Open Coolify dashboard (usually https://YOUR_VPS_IP:8000)
+2. Click **"+ New Project"**
+3. Name: `namosistemos`
+
+### 3.2 Add New Resource
+1. Click **"+ New"** → **"Application"**
+2. Select **"GitHub"** as source
+3. Connect your GitHub account if not connected
+4. Select repository: `callmly/knx-smart-home`
+5. Branch: `main`
+
+### 3.3 Build Configuration
+In the application settings:
+
+**Build Pack:** `Dockerfile`
+
+**Dockerfile Location:** `Dockerfile` (root directory)
+
+**Port Mapping:** `5000`
+
+### 3.4 Environment Variables
+Click **"Environment Variables"** and add:
 
 ```
-DATABASE_URL=postgresql://username:password@host:5432/database_name
-SESSION_SECRET=your-secure-random-string-min-32-chars
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+SESSION_SECRET=your-32-char-random-string-here
 NODE_ENV=production
+PORT=5000
 ```
 
-### Generate SESSION_SECRET
-
-Run this command to generate a secure secret:
+**Generate SESSION_SECRET:**
 ```bash
 openssl rand -base64 32
 ```
+Example output: `K8xP2mN7qR4sT9vW1yB3dF6hJ0kL5nM8pQ2rU4wX7zA=`
 
----
-
-## 2. Database Setup
-
-### Option A: External PostgreSQL (Recommended)
-Use a managed PostgreSQL service like:
-- Hostinger managed database
-- Neon (neon.tech) - free tier available
-- Supabase - free tier available
-
-### Option B: PostgreSQL on Same VPS
-If running PostgreSQL on the same VPS, install and configure:
-
-```bash
-# Install PostgreSQL
-sudo apt update
-sudo apt install postgresql postgresql-contrib
-
-# Create database and user
-sudo -u postgres psql
-CREATE USER knxhome WITH PASSWORD 'your-secure-password';
-CREATE DATABASE knxhome OWNER knxhome;
-GRANT ALL PRIVILEGES ON DATABASE knxhome TO knxhome;
-\q
-```
-
-DATABASE_URL format:
-```
-postgresql://knxhome:your-secure-password@localhost:5432/knxhome
-```
-
----
-
-## 3. Coolify Deployment Setup
-
-### Step 1: Create New Project
-1. Open Coolify dashboard
-2. Click "New Project"
-3. Name: "KNX Smart Home" or "namosistemos"
-
-### Step 2: Add Application
-1. Select "Docker Compose" or "Dockerfile" deployment
-2. Connect your Git repository (GitHub/GitLab)
-3. Select the branch to deploy (usually `main`)
-
-### Step 3: Build Configuration
-
-Create this `Dockerfile` in project root:
-
-```dockerfile
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-
-EXPOSE 5000
-
-CMD ["node", "dist/index.js"]
-```
-
-### Step 4: Environment Variables in Coolify
-Add these in Coolify's environment settings:
-- `DATABASE_URL` - Your PostgreSQL connection string
-- `SESSION_SECRET` - Generated secure string
-- `NODE_ENV` - Set to `production`
-
-### Step 5: Domain Configuration
-1. In Coolify, go to "Domains"
+### 3.5 Domain Configuration
+1. Click **"Domains"** tab
 2. Add: `namosistemos.lt`
 3. Add: `www.namosistemos.lt`
-4. Enable HTTPS (Let's Encrypt)
+4. Enable **"Generate SSL"** (Let's Encrypt)
+
+### 3.6 Health Check (Optional but Recommended)
+- **Health Check Path:** `/`
+- **Health Check Port:** `5000`
+- **Interval:** `30`
+- **Timeout:** `10`
+
+### 3.7 Deploy
+Click **"Deploy"** button and wait for build to complete.
 
 ---
 
-## 4. DNS Configuration (Hostinger)
+## Step 4: Run Database Migrations
 
-In your Hostinger DNS settings for namosistemos.lt:
+After first successful deployment:
 
-| Type  | Name | Value            | TTL  |
-|-------|------|------------------|------|
-| A     | @    | YOUR_VPS_IP      | 3600 |
-| A     | www  | YOUR_VPS_IP      | 3600 |
-| CNAME | www  | namosistemos.lt  | 3600 |
-
-Replace `YOUR_VPS_IP` with your actual VPS IP address.
-
----
-
-## 5. Post-Deployment Steps
-
-### Run Database Migrations
-After first deployment, run migrations:
-
+### Option A: Via Coolify Terminal
+1. In Coolify, click on your application
+2. Click **"Terminal"** or **"Execute Command"**
+3. Run:
 ```bash
-# SSH into your VPS
-ssh root@YOUR_VPS_IP
-
-# Access the container
-docker exec -it <container_id> sh
-
-# Run migrations
-npm run db:push
+npx drizzle-kit push
 ```
 
-Or add this to your Dockerfile build:
-```dockerfile
-RUN npm run db:push
-```
+### Option B: Via SSH
+```bash
+# Find container ID
+docker ps | grep knx
 
-### Create Admin User
-Access the application and log in with Replit Auth to create the first admin user.
+# Execute migration
+docker exec -it CONTAINER_ID npx drizzle-kit push
+```
 
 ---
 
-## 6. Email Configuration (Resend)
+## Step 5: Email Setup (Optional)
 
-For lead notifications, add Resend API key:
+For lead notification emails:
 
-1. Create account at resend.com
-2. Verify your domain (namosistemos.lt)
-3. Get API key
+1. Create account at https://resend.com
+2. Verify domain `namosistemos.lt`:
+   - Go to Resend → Domains → Add Domain
+   - Add the DNS records Resend provides
+3. Get API key from Resend → API Keys
 4. Add to Coolify environment:
-   ```
-   RESEND_API_KEY=re_xxxxxxxxxxxx
-   ```
-
-### Resend Domain Verification
-Add these DNS records for email sending:
-
-| Type | Name                            | Value                          |
-|------|---------------------------------|--------------------------------|
-| TXT  | resend._domainkey.namosistemos.lt | (provided by Resend)          |
-
----
-
-## 7. Health Checks
-
-Configure in Coolify:
-- Health check path: `/api/health` (or `/`)
-- Port: 5000
-- Interval: 30 seconds
-
----
-
-## 8. docker-compose.yml (Alternative)
-
-If using Docker Compose in Coolify:
-
-```yaml
-version: '3.8'
-
-services:
-  app:
-    build: .
-    ports:
-      - "5000:5000"
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - SESSION_SECRET=${SESSION_SECRET}
-      - NODE_ENV=production
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 ```
-
----
-
-## 9. SSL/HTTPS
-
-Coolify handles SSL automatically with Let's Encrypt. Ensure:
-1. Domain is properly pointed to VPS
-2. Ports 80 and 443 are open
-3. Let's Encrypt is enabled in Coolify
-
----
-
-## 10. Backup Strategy
-
-### Database Backups
-```bash
-# Create backup script
-pg_dump -U knxhome -h localhost knxhome > backup_$(date +%Y%m%d).sql
-
-# Schedule with cron (daily at 2 AM)
-0 2 * * * /path/to/backup-script.sh
+RESEND_API_KEY=re_xxxxxxxxxx
 ```
-
----
-
-## Credentials Summary
-
-Keep these secure and private:
-
-| Item | Value |
-|------|-------|
-| Domain | namosistemos.lt |
-| VPS IP | (your Hostinger VPS IP) |
-| DATABASE_URL | postgresql://knxhome:PASSWORD@localhost:5432/knxhome |
-| SESSION_SECRET | (generate with openssl rand -base64 32) |
-| RESEND_API_KEY | (get from resend.com) |
+5. Redeploy the application
 
 ---
 
 ## Troubleshooting
 
-### Application won't start
-- Check container logs in Coolify
-- Verify DATABASE_URL is correct
-- Ensure PostgreSQL is accessible
+### Build Fails
+**Check logs in Coolify:**
+- Click on deployment
+- View build logs
 
-### Database connection errors
-- Check PostgreSQL is running
-- Verify credentials
-- Check firewall allows connection
+**Common issues:**
+- Missing `package-lock.json` - run `npm install` locally and commit
+- Node version mismatch - Dockerfile uses Node 20
 
-### Domain not working
-- Verify DNS propagation (use dnschecker.org)
-- Check Coolify domain configuration
-- Ensure SSL certificate is issued
+### App Won't Start
+**Check runtime logs:**
+```bash
+docker logs CONTAINER_ID
+```
+
+**Common issues:**
+- `DATABASE_URL` not set or incorrect
+- Database not accessible (firewall, wrong host)
+- `SESSION_SECRET` missing
+
+### Database Connection Errors
+- Verify DATABASE_URL format is correct
+- Check if database allows external connections
+- For Neon/Supabase: ensure `?sslmode=require` is in URL
+
+### Domain Not Working
+- Check DNS propagation at dnschecker.org
+- Verify A record points to correct VPS IP
+- Wait for SSL certificate generation (can take 5 min)
+
+### 502 Bad Gateway
+- Application crashed - check container logs
+- Port mismatch - ensure app runs on port 5000
+- Health check failing - verify app responds at `/`
+
+---
+
+## Environment Variables Summary
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| DATABASE_URL | Yes | PostgreSQL connection | `postgresql://user:pass@host:5432/db` |
+| SESSION_SECRET | Yes | 32+ char random string | `K8xP2mN7qR4sT9vW...` |
+| NODE_ENV | Yes | Set to production | `production` |
+| PORT | Yes | Application port | `5000` |
+| RESEND_API_KEY | No | For email notifications | `re_xxxxxxxx` |
+
+---
+
+## Useful Commands
+
+```bash
+# View running containers
+docker ps
+
+# View container logs
+docker logs -f CONTAINER_ID
+
+# Restart container
+docker restart CONTAINER_ID
+
+# Execute command in container
+docker exec -it CONTAINER_ID sh
+
+# Check database connection from container
+docker exec -it CONTAINER_ID node -e "require('pg').Client({connectionString: process.env.DATABASE_URL}).connect().then(() => console.log('OK')).catch(e => console.log('FAIL:', e.message))"
+```
+
+---
+
+## After Successful Deployment
+
+1. Visit https://namosistemos.lt to verify site works
+2. Go to https://namosistemos.lt/admin to access admin panel
+3. Log in with Replit Auth (first user becomes admin)
+4. Configure your plans, features, and content
 
 ---
 
 ## Support
 
-For issues specific to:
-- Coolify: docs.coolify.io
-- Hostinger VPS: support.hostinger.com
-- PostgreSQL: postgresql.org/docs
+- Coolify docs: https://coolify.io/docs
+- Neon docs: https://neon.tech/docs
+- Resend docs: https://resend.com/docs
