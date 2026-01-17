@@ -1,5 +1,8 @@
-# Build stage
 FROM node:20-alpine AS builder
+
+ARG RESEND_API_KEY
+ARG SESSION_SECRET
+ARG DATABASE_URL
 
 WORKDIR /app
 
@@ -9,11 +12,25 @@ RUN apk add --no-cache python3 make g++
 # Copy package files
 COPY package*.json ./
 
-# Install all dependencies (including dev dependencies for build)
+# Install ALL dependencies (including devDependencies)
 RUN npm ci
 
 # Copy source code
 COPY . .
+
+# DEBUG: Check index.html
+RUN echo "=== Checking client structure ===" && \
+    ls -la client/ && \
+    echo "=== Checking index.html type ===" && \
+    file client/index.html && \
+    echo "=== Content preview ===" && \
+    head -5 client/index.html || echo "ERROR: Cannot read index.html"
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV RESEND_API_KEY=${RESEND_API_KEY}
+ENV SESSION_SECRET=${SESSION_SECRET}
+ENV DATABASE_URL=${DATABASE_URL}
 
 # Build the application
 RUN npm run build
@@ -23,29 +40,25 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Install curl for healthcheck
+ARG RESEND_API_KEY
+ARG SESSION_SECRET
+ARG DATABASE_URL
+
 RUN apk add --no-cache curl
 
 ENV NODE_ENV=production
-ENV PORT=5000
+ENV RESEND_API_KEY=${RESEND_API_KEY}
+ENV SESSION_SECRET=${SESSION_SECRET}
+ENV DATABASE_URL=${DATABASE_URL}
 
-# Copy built application
+COPY package*.json ./
+RUN npm ci --omit=dev
+
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
-
-# Copy drizzle config for migrations
-COPY --from=builder /app/drizzle.config.ts ./
-COPY --from=builder /app/shared ./shared
-
-# Expose port
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
   CMD curl -f http://localhost:5000/ || exit 1
 
-# Start command
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/index.cjs"]
