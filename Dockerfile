@@ -7,24 +7,31 @@ ARG DATABASE_URL
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apk add --no-cache python3 make g++ file
 
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (including devDependencies)
+# Install ALL dependencies
 RUN npm ci
 
-# Copy source code
-COPY . .
+# Copy ONLY specific directories (avoid .dockerignore issues)
+COPY client ./client
+COPY server ./server
+COPY shared ./shared
+COPY script ./script
+COPY db ./db
+COPY vite.config.ts ./
+COPY tsconfig.json ./
+COPY tailwind.config.ts ./
+COPY postcss.config.js ./
 
-# DEBUG: Check index.html
-RUN echo "=== Checking client structure ===" && \
-    ls -la client/ && \
-    echo "=== Checking index.html type ===" && \
+# DEBUG: Verify index.html
+RUN echo "=== Checking index.html ===" && \
+    ls -lah client/index.html && \
     file client/index.html && \
-    echo "=== Content preview ===" && \
-    head -5 client/index.html || echo "ERROR: Cannot read index.html"
+    cat client/index.html && \
+    echo "=== End of index.html ===" || echo "ERROR: index.html not found or unreadable"
 
 # Set environment variables
 ENV NODE_ENV=production
@@ -32,8 +39,11 @@ ENV RESEND_API_KEY=${RESEND_API_KEY}
 ENV SESSION_SECRET=${SESSION_SECRET}
 ENV DATABASE_URL=${DATABASE_URL}
 
-# Build the application
+# Build
 RUN npm run build
+
+# Verify build output
+RUN ls -la dist/
 
 # Production stage
 FROM node:20-alpine AS runner
