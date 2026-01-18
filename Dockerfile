@@ -38,11 +38,8 @@ COPY --from=builder /app/package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Install drizzle-kit and tsx for database migrations (needed at runtime)
-RUN npm install drizzle-kit tsx --save && \
-    echo "Verifying drizzle-kit installation:" && \
-    ls -la node_modules/drizzle-kit && \
-    npx drizzle-kit --version
+# Install drizzle-kit and tsx globally for database migrations
+RUN npm install -g drizzle-kit tsx
 
 # Copy built application (server + client)
 COPY --from=builder /app/dist ./dist
