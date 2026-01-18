@@ -45,7 +45,7 @@ RUN npm install drizzle-kit tsx --save
 COPY --from=builder /app/dist ./dist
 
 # Copy drizzle config and schema for migrations
-COPY --from=builder /app/drizzle.config.json ./
+COPY --from=builder /app/drizzle.config.ts ./
 COPY --from=builder /app/shared ./shared
 
 # Expose port
