@@ -8,22 +8,25 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  // Svarbiausia dalis: nurodome, kad Vite "namai" yra client aplankas.
-  // Vite automatiškai ieškos index.html failo ten.
-  root: 'client',
+  // 1. ŠAKNIS: Nurodome veikti pagrindiniame /app kataloge
+  root: process.cwd(),
   resolve: {
     alias: {
-      // Aliasai turi rodyti pilną kelią nuo projekto šaknies
       "@": path.resolve(__dirname, "client/src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
+      // 2. SVARBU: Kadangi root dabar yra /app, turime pasakyti, kur yra /src
+      "/src": path.resolve(__dirname, "client/src"),
     },
   },
   build: {
-    // Kadangi esame 'client' aplanke, turime išeiti vienu lygiu atgal (..)
-    outDir: '../dist/public',
+    // Buildas eina į dist/public
+    outDir: "dist/public",
     emptyOutDir: true,
-    // SVARBU: Ištryniau 'rollupOptions' su 'input'.
-    // Tai išspręs EISDIR klaidą, nes Vite naudos standartinį elgesį.
+    rollupOptions: {
+      // 3. ĮVESTIS: Nurodome griežtą, absoliutų kelią iki failo.
+      // Jokių spėliojimų.
+      input: path.resolve(__dirname, "client/index.html"),
+    },
   },
 });
