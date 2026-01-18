@@ -8,17 +8,15 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  // Svarbu: Čia NENURODOME root. Mes paleisime vite IŠ client aplanko.
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@shared": path.resolve(__dirname, "../shared"),
-      "@assets": path.resolve(__dirname, "../attached_assets"),
+      // Aliasai lieka, nes jų reikia kodui
+      "@": path.resolve(__dirname, "client/src"),
+      "@shared": path.resolve(__dirname, "shared"),
+      "@assets": path.resolve(__dirname, "attached_assets"),
+      "/src": path.resolve(__dirname, "client/src"),
     },
   },
-  build: {
-    // Išeiname iš client (..) ir einame į dist
-    outDir: '../dist/public',
-    emptyOutDir: true,
-  },
+  // JOKIŲ 'root' ar 'build' nustatymų čia. 
+  // Viską valdysime per script/build.ts
 });
