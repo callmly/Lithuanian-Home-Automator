@@ -8,20 +8,17 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  // Nustatome šaknį į client. Vite viską skaičiuos nuo ten.
-  root: "client",
+  // Svarbu: Čia NENURODOME root. Mes paleisime vite IŠ client aplanko.
   resolve: {
     alias: {
-      // Keliai vis tiek skaičiuojami nuo šio failo buvimo vietos (__dirname = /app)
-      "@": path.resolve(__dirname, "client/src"),
-      "@shared": path.resolve(__dirname, "shared"),
-      "@assets": path.resolve(__dirname, "attached_assets"),
+      "@": path.resolve(__dirname, "./src"),
+      "@shared": path.resolve(__dirname, "../shared"),
+      "@assets": path.resolve(__dirname, "../attached_assets"),
     },
   },
   build: {
-    // Išeiname iš "client" atgal į root (..) ir į dist
-    outDir: "../dist/public",
+    // Išeiname iš client (..) ir einame į dist
+    outDir: '../dist/public',
     emptyOutDir: true,
-    // Svarbu: JOKIŲ rollupOptions.input. Vite pati ras index.html client aplanke.
   },
 });
