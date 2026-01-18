@@ -1,5 +1,5 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite"; // Pašalinau InlineConfig, nes naudosime failą
+import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -42,16 +42,11 @@ async function buildAll() {
   console.log("building client...");
   
   // 2. Paleidžiame Vite Build
-  // Svarbu: Nurodome naudoti egzistuojantį vite.config.ts failą, 
-  // bet "perrašome" input kelią į absoliutų, kad tikrai rastų failą.
+  // ESMINIS PAKEITIMAS: Mes tiesiog nurodome konfigūracijos failą.
+  // Nieko daugiau neperrašome (jokių input ar root nustatymų čia),
+  // nes viskas teisingai surašyta vite.config.ts faile.
   await viteBuild({
     configFile: path.resolve(__dirname, "..", "vite.config.ts"),
-    build: {
-      rollupOptions: {
-        // Čia naudojame absoliutų kelią, kad išvengtume "UNRESOLVED_ENTRY" klaidos
-        input: path.resolve(__dirname, "..", "client", "index.html"),
-      },
-    },
   });
 
   console.log("building server...");
