@@ -38,8 +38,8 @@ COPY --from=builder /app/package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Install drizzle-kit globally for migrations
-RUN npm install -g drizzle-kit tsx
+# Install drizzle-kit globally for migrations (with drizzle-orm dependency)
+RUN npm install -g drizzle-kit drizzle-orm tsx
 
 # Copy built application (server + client)
 COPY --from=builder /app/dist ./dist
