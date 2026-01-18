@@ -48,6 +48,9 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle.config.prod.cjs ./drizzle.config.cjs
 COPY --from=builder /app/shared ./shared
 
+# Copy scripts folder for database seeding
+COPY --from=builder /app/scripts ./scripts
+
 # Expose port
 EXPOSE 5000
 
