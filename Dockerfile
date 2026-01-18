@@ -44,7 +44,8 @@ RUN npm install drizzle-kit --save
 # Copy built application (server + client)
 COPY --from=builder /app/dist ./dist
 
-
+COPY --from=builder /app/drizzle.config.ts ./
+COPY --from=builder /app/shared ./shared
 
 # Expose port
 EXPOSE 5000
