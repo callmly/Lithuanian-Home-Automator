@@ -20,7 +20,7 @@ COPY client ./client
 COPY server ./server
 COPY shared ./shared
 COPY script ./script
-COPY db ./db
+#COPY db ./db
 COPY vite.config.ts ./
 COPY tsconfig.json ./
 COPY tailwind.config.ts ./
