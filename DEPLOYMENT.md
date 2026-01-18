@@ -225,12 +225,27 @@ docker exec -it CONTAINER_ID node -e "require('pg').Client({connectionString: pr
 
 ---
 
+## Important: Admin Panel Access
+
+**Note:** The admin panel uses Replit Auth for authentication, which only works on Replit.com.
+
+When deployed externally (Hostinger/Coolify), the admin panel will NOT be accessible because `REPL_ID` environment variable is not available outside Replit.
+
+**To manage content:**
+1. Use Replit development environment for admin tasks
+2. Data is synced via the shared PostgreSQL database
+3. Changes made in Replit admin will appear on production site
+
+**Alternative:** If you need admin access on production, you'll need to implement a different authentication system (e.g., username/password auth).
+
+---
+
 ## After Successful Deployment
 
 1. Visit https://namosistemos.lt to verify site works
-2. Go to https://namosistemos.lt/admin to access admin panel
-3. Log in with Replit Auth (first user becomes admin)
-4. Configure your plans, features, and content
+2. Public pages work normally (landing page, lead forms, custom pages)
+3. Admin panel is NOT accessible on external deployments
+4. Use Replit development environment for content management
 
 ---
 
