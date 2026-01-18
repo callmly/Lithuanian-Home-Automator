@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { execSync } from "child_process"; // Pridedame šį importą
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -36,16 +36,22 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  // Išvalome dist
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
-  // Paleidžiame Vite naudodami mūsų config failą.
-  // path.resolve užtikrina, kad rasime failą nepriklausomai nuo to, iš kur leidžiamas skriptas.
-  await viteBuild({
-    configFile: path.resolve(__dirname, "..", "vite.config.ts"),
-  });
+  // PAKEITIMAS: Paleidžiame Vite kaip atskirą komandą.
+  // Tai pašalina visas keistas problemas su CWD (darbiniais katalogais) ir path resolution.
+  // stdio: 'inherit' leis matyti spalvotus logus tiesiai terminale.
+  try {
+    execSync("npx vite build", { 
+      stdio: "inherit", 
+      cwd: path.resolve(__dirname, "..") // Užtikriname, kad komanda leidžiama iš projekto šaknies (/app)
+    });
+  } catch (error) {
+    console.error("Vite build failed");
+    process.exit(1);
+  }
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
