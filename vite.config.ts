@@ -16,12 +16,13 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
-  root: path.resolve(__dirname, "client"),
+  root: path.resolve(__dirname, "client"), // Šaknis jau yra 'client' aplankas
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
     rollupOptions: {
-      input: path.resolve(__dirname, "client", "index.html"),
+      // PAKEITIMAS: nurodykite tik failo pavadinimą, nes root jau yra 'client'
+      input: "index.html", 
     },
   },
 });
