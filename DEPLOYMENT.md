@@ -117,22 +117,16 @@ Click **"Deploy"** button and wait for build to complete.
 
 After first successful deployment:
 
-### Option A: Via Coolify Terminal
-1. In Coolify, click on your application
-2. Click **"Terminal"** or **"Execute Command"**
-3. Run:
-```bash
-npx drizzle-kit push
-```
-
-### Option B: Via SSH
+### Via SSH (Recommended)
 ```bash
 # Find container ID
 docker ps | grep knx
 
-# Execute migration
-docker exec -it CONTAINER_ID npx drizzle-kit push
+# Execute migration (uses CommonJS config - no import issues)
+docker exec -it CONTAINER_ID drizzle-kit push --config=drizzle.config.cjs
 ```
+
+The container includes `drizzle-kit` globally installed and uses a CommonJS config file (`drizzle.config.cjs`) that doesn't require any module imports.
 
 ---
 

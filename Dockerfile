@@ -12,7 +12,7 @@ COPY package*.json ./
 # Install all dependencies (including dev for build)
 RUN npm ci
 
-# Copy source codeghghh
+# Copy source code
 COPY . .
 
 # Build the application
@@ -38,17 +38,14 @@ COPY --from=builder /app/package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Install drizzle-kit and tsx globally for CLI access
+# Install drizzle-kit globally for migrations
 RUN npm install -g drizzle-kit tsx
-
-# Also install drizzle-kit locally so config file can import it
-RUN npm install drizzle-kit
 
 # Copy built application (server + client)
 COPY --from=builder /app/dist ./dist
 
-# Copy drizzle config and schema for migrations
-COPY --from=builder /app/drizzle.config.ts ./
+# Copy drizzle config (CommonJS - no imports needed) and schema for migrations
+COPY --from=builder /app/drizzle.config.prod.cjs ./drizzle.config.cjs
 COPY --from=builder /app/shared ./shared
 
 # Expose port
