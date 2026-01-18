@@ -40,18 +40,20 @@ async function buildAll() {
 
   console.log("building client...");
   
-  // 1. Apibrėžiame kelius
-  const rootDir = path.resolve(__dirname, "..");
-  const clientDir = path.resolve(rootDir, "client");
-  const configFile = path.resolve(rootDir, "vite.config.ts");
-
-  // 2. Paleidžiame Vite build BŪDAMI client aplanke.
-  // Tai priverčia Vite elgtis taip, lyg tai būtų paprastas React projektas.
-  // -c nurodo, kur yra konfigūracija (šakniniame kataloge).
+  // SPRENDIMAS:
+  // Mes nurodome failą tiesiai CLI argumentuose.
+  // Tai apeina bet kokius "root" spėliojimus.
+  // --config nurodo kur yra konfigūracija.
+  // client/index.html yra įvestis.
+  // --outDir nurodo kur dėti rezultatą.
   try {
-    execSync(`npx vite build -c ${configFile}`, { 
+    const rootDir = path.resolve(__dirname, "..");
+    const configFile = path.resolve(rootDir, "vite.config.ts");
+    
+    // Vykdome iš pagrindinio katalogo (/app)
+    execSync(`npx vite build client/index.html --config ${configFile} --outDir dist/public --emptyOutDir`, { 
       stdio: "inherit", 
-      cwd: clientDir // ŠTAI RAKTAS: mes "įeiname" į client aplanką
+      cwd: rootDir 
     });
   } catch (error) {
     console.error("Vite build failed");
