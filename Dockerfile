@@ -38,13 +38,15 @@ COPY --from=builder /app/package*.json ./
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Install drizzle-kit for database migrations (needed at runtime)
-RUN npm install drizzle-kit --save
+# Install drizzle-kit and tsx for database migrations (needed at runtime)
+RUN npm install drizzle-kit tsx --save
 
 # Copy built application (server + client)
 COPY --from=builder /app/dist ./dist
 
-
+# Copy drizzle config and schema for migrations
+COPY --from=builder /app/drizzle.config.json ./
+COPY --from=builder /app/shared ./shared
 
 # Expose port
 EXPOSE 5000
