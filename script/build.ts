@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { execSync } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -36,18 +36,27 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  // 1. Išvalome dist katalogą
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
-  // 2. Paleidžiame Vite Build
-  // ESMINIS PAKEITIMAS: Mes tiesiog nurodome konfigūracijos failą.
-  // Nieko daugiau neperrašome (jokių input ar root nustatymų čia),
-  // nes viskas teisingai surašyta vite.config.ts faile.
-  await viteBuild({
-    configFile: path.resolve(__dirname, "..", "vite.config.ts"),
-  });
+  // 1. Apibrėžiame kelius
+  const rootDir = path.resolve(__dirname, "..");
+  const clientDir = path.resolve(rootDir, "client");
+  const configFile = path.resolve(rootDir, "vite.config.ts");
+
+  // 2. Paleidžiame Vite build BŪDAMI client aplanke.
+  // Tai priverčia Vite elgtis taip, lyg tai būtų paprastas React projektas.
+  // -c nurodo, kur yra konfigūracija (šakniniame kataloge).
+  try {
+    execSync(`npx vite build -c ${configFile}`, { 
+      stdio: "inherit", 
+      cwd: clientDir // ŠTAI RAKTAS: mes "įeiname" į client aplanką
+    });
+  } catch (error) {
+    console.error("Vite build failed");
+    process.exit(1);
+  }
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
@@ -55,7 +64,6 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
