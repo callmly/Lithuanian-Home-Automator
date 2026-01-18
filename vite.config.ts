@@ -10,21 +10,22 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "client", "src"),
+      // Nurodome kelius nuo pagrindinio katalogo
+      "@": path.resolve(__dirname, "client/src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
-  // Nustatome, kad Vite "namai" yra client aplankas
-  root: 'client', 
+  // Svarbu: Pašalinome "root: 'client'". 
+  // Dabar Vite veiks iš projekto šaknies (/app).
   build: {
-    // Išeiname vienu lygiu atgal (..) ir tada į dist/public
-    outDir: '../dist/public',
+    // Buildas eis tiesiai į dist/public (nebereikia išeiti atgal su "..")
+    outDir: "dist/public",
     emptyOutDir: true,
     rollupOptions: {
-      // SVARBU: Čia rašome tik failo pavadinimą. 
-      // Jokių path.resolve, jokių /app/client...
-      input: 'index.html',
+      // SVARBU: Nurodome santykinį kelią iki failo.
+      // Vite ieškos failo "client/index.html" pradedant nuo "/app"
+      input: "client/index.html",
     },
   },
 });
