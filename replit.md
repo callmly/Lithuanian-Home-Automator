@@ -56,11 +56,13 @@ Key database tables:
 - `leads` - Lead capture form submissions
 - `users` / `sessions` - Authentication (Replit Auth)
 
-### Authentication
-- **Provider**: Replit Auth (OpenID Connect)
+### Authentication (Dual System)
+- **Development**: Replit Auth (OpenID Connect) - works automatically when REPL_ID is set
+- **Production**: Password-based authentication via ADMIN_USERNAME and ADMIN_PASSWORD env vars
 - **Session Storage**: PostgreSQL via connect-pg-simple
-- **Pattern**: Session-based with Passport.js
-- Protected routes use `isAuthenticated` middleware
+- **Pattern**: Session-based with Passport.js (for Replit Auth) or custom session for password auth
+- Protected routes use `isAuthenticated` middleware (supports both auth methods)
+- Admin login page: `/admin/login` (for password-based auth)
 
 ### Shared Code Pattern
 The `/shared/` directory contains code used by both frontend and backend:
@@ -87,7 +89,9 @@ The `/shared/` directory contains code used by both frontend and backend:
 ### Environment Variables Required
 - `DATABASE_URL` - PostgreSQL connection string
 - `SESSION_SECRET` - Express session secret
-- `REPL_ID` - Replit environment identifier (auto-set by Replit)
+- `REPL_ID` - Replit environment identifier (auto-set by Replit, enables Replit Auth)
+- `ADMIN_USERNAME` - Admin username for password auth (production)
+- `ADMIN_PASSWORD` - Admin password for password auth (production)
 - Resend credentials via Replit Connectors
 
 ## Recent Changes
@@ -103,3 +107,10 @@ The `/shared/` directory contains code used by both frontend and backend:
 - Added `Dockerfile` for container deployment
 - Added `DEPLOYMENT.md` with instructions for Hostinger VPS + Coolify
 - Target domain: namosistemos.lt
+
+### Dual Authentication System (January 2026)
+- Added password-based authentication for production environments
+- Login page at `/admin/login` for environments without Replit Auth
+- Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` in Coolify for production access
+- System automatically detects which auth method to use based on available env vars
+- Both methods share the same session storage (PostgreSQL)
