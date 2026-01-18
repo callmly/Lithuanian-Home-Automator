@@ -36,12 +36,13 @@ const allowlist = [
 ];
 
 async function buildAll() {
+  // Išvalome dist
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
-  // Tiesiog nurodome kelią iki config failo.
-  // Kadangi build.ts yra "script" aplanke, config failas yra vienu lygiu aukščiau (..)
+  // Paleidžiame Vite naudodami mūsų config failą.
+  // path.resolve užtikrina, kad rasime failą nepriklausomai nuo to, iš kur leidžiamas skriptas.
   await viteBuild({
     configFile: path.resolve(__dirname, "..", "vite.config.ts"),
   });
