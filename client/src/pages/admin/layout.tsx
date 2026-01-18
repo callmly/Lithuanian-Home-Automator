@@ -68,7 +68,8 @@ export default function AdminLayout() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = "/api/login";
+      // Redirect to password login page (works for both auth methods)
+      window.location.href = "/admin/login";
     }
   }, [isLoading, isAuthenticated]);
 

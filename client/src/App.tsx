@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import LandingPage from "@/pages/landing";
 import AdminLayout from "@/pages/admin/layout";
+import AdminLogin from "@/pages/admin/login";
 import CustomPageView from "@/pages/custom-page";
 import NotFound from "@/pages/not-found";
 
@@ -14,6 +15,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
+      <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminLayout} />
       <Route path="/admin/:rest*" component={AdminLayout} />
       <Route path="/:slug" component={CustomPageView} />

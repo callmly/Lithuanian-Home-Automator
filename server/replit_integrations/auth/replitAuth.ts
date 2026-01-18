@@ -9,8 +9,18 @@ import connectPg from "connect-pg-simple";
 import { authStorage } from "./storage";
 
 // Check if Replit Auth is available (requires REPL_ID)
-export const isAuthEnabled = (): boolean => {
+export const isReplitAuthEnabled = (): boolean => {
   return Boolean(process.env.REPL_ID);
+};
+
+// Check if password auth is available
+export const isPasswordAuthEnabled = (): boolean => {
+  return Boolean(process.env.ADMIN_USERNAME && process.env.ADMIN_PASSWORD);
+};
+
+// Check if any auth method is enabled
+export const isAuthEnabled = (): boolean => {
+  return isReplitAuthEnabled() || isPasswordAuthEnabled();
 };
 
 const getOidcConfig = memoize(
@@ -69,19 +79,65 @@ async function upsertUser(claims: any) {
 }
 
 export async function setupAuth(app: Express) {
-  // Check if auth can be enabled
+  // Always set up session for both auth methods
+  app.set("trust proxy", 1);
+  app.use(getSession());
+  
+  // Check if any auth method is enabled
   if (!isAuthEnabled()) {
     console.warn("========================================");
-    console.warn("  Replit Auth is DISABLED");
-    console.warn("  REPL_ID environment variable not found");
+    console.warn("  Authentication is DISABLED");
+    console.warn("  Set REPL_ID for Replit Auth");
+    console.warn("  Or set ADMIN_USERNAME and ADMIN_PASSWORD");
     console.warn("  Admin panel will not be accessible");
     console.warn("========================================");
     return;
   }
 
+  // Setup password-based auth routes if enabled
+  if (isPasswordAuthEnabled()) {
+    console.log("========================================");
+    console.log("  Password Auth is ENABLED");
+    console.log("  Login at /admin/login");
+    console.log("========================================");
+    
+    app.post("/api/admin/login", (req, res) => {
+      const { username, password } = req.body;
+      
+      if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        (req.session as any).adminAuthenticated = true;
+        (req.session as any).adminUser = {
+          id: "admin",
+          email: "admin@namosistemos.lt",
+          firstName: "Admin",
+          lastName: "",
+        };
+        req.session.save((err) => {
+          if (err) {
+            return res.status(500).json({ error: "Session error" });
+          }
+          res.json({ success: true });
+        });
+      } else {
+        res.status(401).json({ error: "Invalid credentials" });
+      }
+    });
+
+    app.post("/api/admin/logout", (req, res) => {
+      (req.session as any).adminAuthenticated = false;
+      (req.session as any).adminUser = null;
+      req.session.save(() => {
+        res.json({ success: true });
+      });
+    });
+  }
+
+  // Setup Replit Auth if available
+  if (!isReplitAuthEnabled()) {
+    return;
+  }
+
   try {
-    app.set("trust proxy", 1);
-    app.use(getSession());
     app.use(passport.initialize());
     app.use(passport.session());
 
@@ -167,30 +223,60 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     });
   }
 
-  const user = req.user as any;
-
-  if (!req.isAuthenticated || !req.isAuthenticated() || !user?.expires_at) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  if (now <= user.expires_at) {
+  // Check password-based auth first
+  if (isPasswordAuthEnabled() && (req.session as any).adminAuthenticated) {
     return next();
   }
 
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+  // Check Replit Auth
+  if (isReplitAuthEnabled()) {
+    const user = req.user as any;
+
+    if (!req.isAuthenticated || !req.isAuthenticated() || !user?.expires_at) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    if (now <= user.expires_at) {
+      return next();
+    }
+
+    const refreshToken = user.refresh_token;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const config = await getOidcConfig();
+      const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
+      updateUserSession(user, tokenResponse);
+      return next();
+    } catch (error) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
   }
 
-  try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
-  } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
+  return res.status(401).json({ message: "Unauthorized" });
+};
+
+// Get current authenticated user
+export const getAuthUser: RequestHandler = (req, res) => {
+  // Check password-based auth
+  if (isPasswordAuthEnabled() && (req.session as any).adminAuthenticated) {
+    return res.json((req.session as any).adminUser);
   }
+
+  // Check Replit Auth
+  if (isReplitAuthEnabled() && req.isAuthenticated && req.isAuthenticated()) {
+    const user = req.user as any;
+    return res.json({
+      id: user.claims?.sub,
+      email: user.claims?.email,
+      firstName: user.claims?.first_name,
+      lastName: user.claims?.last_name,
+      profileImageUrl: user.claims?.profile_image_url,
+    });
+  }
+
+  return res.status(401).json({ message: "Not authenticated" });
 };
