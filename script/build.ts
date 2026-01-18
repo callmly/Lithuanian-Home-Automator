@@ -40,8 +40,8 @@ async function buildAll() {
 
   console.log("building client...");
   
-  // Mes nurodome kelią iki config failo. 
-  // Vite Config failas pats susitvarkys su root nustatymais.
+  // Tiesiog nurodome kelią iki config failo.
+  // Kadangi build.ts yra "script" aplanke, config failas yra vienu lygiu aukščiau (..)
   await viteBuild({
     configFile: path.resolve(__dirname, "..", "vite.config.ts"),
   });
