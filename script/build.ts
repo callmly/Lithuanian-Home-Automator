@@ -7,22 +7,25 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ... (allowlist lieka tas pats)
+// BŪTINA: Čia įkopijuokite savo allowlist masyvą iš senojo failo, jei tokį turėjote.
+// Jei nežinote, palikite tuščią arba įrašykite paketus, kurių nereikia įtraukti į externals.
+const allowlist: string[] = []; 
 
 async function buildAll() {
+  // Išvalome dist katalogą
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
   const viteConfig: InlineConfig = {
-    root: path.resolve(__dirname, "..", "client"), // Šaknis nukreipta į 'client'
+    // Nurodome, kad šaknis yra client aplankas (vienu lygiu aukščiau nuo script aplanko)
+    root: path.resolve(__dirname, "..", "client"),
     build: {
       outDir: path.resolve(__dirname, "..", "dist", "public"),
       emptyOutDir: true,
       rollupOptions: {
-        // PAKEITIMAS: nurodykite tik failo pavadinimą
-        input: path.resolve(__dirname, "..", "client", "index.html"),
-        // ARBA tiesiog: input: "index.html",
+        // PATAISYMAS: Čia irgi nurodome tik "index.html", nes root jau yra client
+        input: "index.html",
       },
     },
   };
@@ -35,6 +38,8 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
+  
+  // Filtruojame priklausomybes
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
