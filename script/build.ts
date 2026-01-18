@@ -36,15 +36,12 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  // 1. Išvalome dist katalogą
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
-  // 2. Paleidžiame Vite Build
-  // ESMINIS PAKEITIMAS: Mes tiesiog nurodome konfigūracijos failą.
-  // Nieko daugiau neperrašome (jokių input ar root nustatymų čia),
-  // nes viskas teisingai surašyta vite.config.ts faile.
+  // Dabar tiesiog paleidžiame su konfigūracijos failu.
+  // Jokių papildomų root ar input nustatymų čia nereikia.
   await viteBuild({
     configFile: path.resolve(__dirname, "..", "vite.config.ts"),
   });
