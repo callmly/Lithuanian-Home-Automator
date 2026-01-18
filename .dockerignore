@@ -26,7 +26,6 @@ replit.nix
 
 # Development files
 attached_assets
-scripts
 *.log
 
 # IDE
