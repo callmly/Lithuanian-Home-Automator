@@ -7,9 +7,33 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// BŪTINA: Čia įkopijuokite savo allowlist masyvą iš senojo failo, jei tokį turėjote.
-// Jei nežinote, palikite tuščią arba įrašykite paketus, kurių nereikia įtraukti į externals.
-const allowlist: string[] = []; 
+const allowlist = [
+  "@google/generative-ai",
+  "axios",
+  "connect-pg-simple",
+  "cors",
+  "date-fns",
+  "drizzle-orm",
+  "drizzle-zod",
+  "express",
+  "express-rate-limit",
+  "express-session",
+  "jsonwebtoken",
+  "memorystore",
+  "multer",
+  "nanoid",
+  "nodemailer",
+  "openai",
+  "passport",
+  "passport-local",
+  "pg",
+  "stripe",
+  "uuid",
+  "ws",
+  "xlsx",
+  "zod",
+  "zod-validation-error",
+];
 
 async function buildAll() {
   // Išvalome dist katalogą
