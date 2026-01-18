@@ -1,5 +1,5 @@
 import { build as esbuild } from "esbuild";
-import { build as viteBuild, InlineConfig } from "vite";
+import { build as viteBuild } from "vite"; // Pašalinau InlineConfig, nes naudosime failą
 import { rm, readFile } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -36,25 +36,23 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  // Išvalome dist katalogą
+  // 1. Išvalome dist katalogą
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
   
-  const viteConfig: InlineConfig = {
-    // Nurodome, kad šaknis yra client aplankas (vienu lygiu aukščiau nuo script aplanko)
-    root: path.resolve(__dirname, "..", "client"),
+  // 2. Paleidžiame Vite Build
+  // Svarbu: Nurodome naudoti egzistuojantį vite.config.ts failą, 
+  // bet "perrašome" input kelią į absoliutų, kad tikrai rastų failą.
+  await viteBuild({
+    configFile: path.resolve(__dirname, "..", "vite.config.ts"),
     build: {
-      outDir: path.resolve(__dirname, "..", "dist", "public"),
-      emptyOutDir: true,
       rollupOptions: {
-        // PATAISYMAS: Čia irgi nurodome tik "index.html", nes root jau yra client
-        input: "index.html",
+        // Čia naudojame absoliutų kelią, kad išvengtume "UNRESOLVED_ENTRY" klaidos
+        input: path.resolve(__dirname, "..", "client", "index.html"),
       },
     },
-  };
-  
-  await viteBuild(viteConfig);
+  });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
@@ -63,7 +61,6 @@ async function buildAll() {
     ...Object.keys(pkg.devDependencies || {}),
   ];
   
-  // Filtruojame priklausomybes
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
