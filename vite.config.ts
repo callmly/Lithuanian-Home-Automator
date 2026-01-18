@@ -13,18 +13,18 @@ export default defineConfig({
       "@": path.resolve(__dirname, "client", "src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
-      // SVARBU: Šis alias leidžia index.html failui rasti main.tsx, 
-      // nes dabar root yra pagrindinis katalogas
-      "/src": path.resolve(__dirname, "client", "src"),
     },
   },
-  // Root nustatymo nebėra - naudojame numatytąjį (projektas)
+  // Nustatome, kad Vite "namai" yra client aplankas
+  root: 'client', 
   build: {
-    outDir: path.resolve(__dirname, "dist/public"),
+    // Išeiname vienu lygiu atgal (..) ir tada į dist/public
+    outDir: '../dist/public',
     emptyOutDir: true,
     rollupOptions: {
-      // SVARBU: Nurodome tikslų absoliutų kelią iki failo
-      input: path.resolve(__dirname, "client", "index.html"),
+      // SVARBU: Čia rašome tik failo pavadinimą. 
+      // Jokių path.resolve, jokių /app/client...
+      input: 'index.html',
     },
   },
 });
