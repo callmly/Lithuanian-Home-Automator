@@ -15,12 +15,14 @@ async function buildAll() {
   console.log("building client...");
   
   const viteConfig: InlineConfig = {
-    root: path.resolve(__dirname, "..", "client"),
+    root: path.resolve(__dirname, "..", "client"), // Šaknis nukreipta į 'client'
     build: {
       outDir: path.resolve(__dirname, "..", "dist", "public"),
       emptyOutDir: true,
       rollupOptions: {
+        // PAKEITIMAS: nurodykite tik failo pavadinimą
         input: path.resolve(__dirname, "..", "client", "index.html"),
+        // ARBA tiesiog: input: "index.html",
       },
     },
   };
