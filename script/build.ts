@@ -40,8 +40,8 @@ async function buildAll() {
 
   console.log("building client...");
   
-  // Dabar tiesiog paleidžiame su konfigūracijos failu.
-  // Jokių papildomų root ar input nustatymų čia nereikia.
+  // Mes nurodome kelią iki config failo. 
+  // Vite Config failas pats susitvarkys su root nustatymais.
   await viteBuild({
     configFile: path.resolve(__dirname, "..", "vite.config.ts"),
   });
@@ -52,7 +52,6 @@ async function buildAll() {
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
   ];
-  
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
