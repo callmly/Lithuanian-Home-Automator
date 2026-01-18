@@ -8,25 +8,20 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [react()],
-  // 1. ŠAKNIS: Nurodome veikti pagrindiniame /app kataloge
-  root: process.cwd(),
+  // Nustatome šaknį į client. Vite viską skaičiuos nuo ten.
+  root: "client",
   resolve: {
     alias: {
+      // Keliai vis tiek skaičiuojami nuo šio failo buvimo vietos (__dirname = /app)
       "@": path.resolve(__dirname, "client/src"),
       "@shared": path.resolve(__dirname, "shared"),
       "@assets": path.resolve(__dirname, "attached_assets"),
-      // 2. SVARBU: Kadangi root dabar yra /app, turime pasakyti, kur yra /src
-      "/src": path.resolve(__dirname, "client/src"),
     },
   },
   build: {
-    // Buildas eina į dist/public
-    outDir: "dist/public",
+    // Išeiname iš "client" atgal į root (..) ir į dist
+    outDir: "../dist/public",
     emptyOutDir: true,
-    rollupOptions: {
-      // 3. ĮVESTIS: Nurodome griežtą, absoliutų kelią iki failo.
-      // Jokių spėliojimų.
-      input: path.resolve(__dirname, "client/index.html"),
-    },
+    // Svarbu: JOKIŲ rollupOptions.input. Vite pati ras index.html client aplanke.
   },
 });
